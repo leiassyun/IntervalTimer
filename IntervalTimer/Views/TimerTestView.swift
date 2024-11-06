@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct TimerTestView: View {
-    @StateObject private var timeManager = TimeManager() // Observes changes in TimeManager
+    @StateObject private var timeManager = TimeManager() 
 
     var body: some View {
         VStack {

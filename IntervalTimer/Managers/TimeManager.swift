@@ -9,16 +9,20 @@ import Combine
 import SwiftUI
 
 class TimeManager : ObservableObject {
+
     @Published var timeRemaining: Int = 60
     @Published var isRunning: Bool = false
+
+
     
     private var timer: AnyCancellable?
     
-    func startTimer() {
+    
+    func startTimer(for time: Int) {
         guard !isRunning else { return }            // Prevents multiple timers from starting at once
-        
         isRunning = true
-        
+        timeRemaining = time
+     
         timer = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink {[weak self] _ in                 //weak reference to prevent memory leaks
@@ -31,6 +35,7 @@ class TimeManager : ObservableObject {
                 }
             }
     }
+    
     
     func stopTimer() {
         isRunning = false
