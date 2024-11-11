@@ -18,11 +18,11 @@ class WorkoutManager : ObservableObject{
     @Published var currentSets: Int = 1
     @Published var timeRemaining: Int = 0
     
-    private var timeManager = TimeManager()
-    private var cancellables = Set<AnyCancellable>()
+    public var timeManager = TimeManager()
+    public var cancellables = Set<AnyCancellable>()
     
     init(){
-        //observeTimer()
+        observeTimer()
     }
     
     func startWorkout(){
@@ -60,10 +60,21 @@ class WorkoutManager : ObservableObject{
     }
    
     
-//    func observeTimer(){
-//        //Listens for timeRemaining to reach zero, at which point it automatically calls switchPhase()
-//        timeManager.$timeRemaining
-//
-//        
-//    }
+    func observeTimer(){
+        //Listens for timeRemaining to reach zero, at which point it automatically calls switchPhase()
+        timeManager.$timeRemaining
+            .sink { [weak self] timeRemaining in
+                           guard let self = self else { return }
+                           self.timeRemaining = timeRemaining
+                           
+                           // Check if timer has reached 0 and if the workout should proceed to the next phase
+                           if timeRemaining == 0 && self.timeManager.isRunning {
+                               self.switchWorkoutPhase()
+                           }
+                       }
+                       .store(in: &cancellables)
+
+
+        
+    }
 }
