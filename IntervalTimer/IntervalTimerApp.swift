@@ -13,7 +13,7 @@ struct IntervalTimerApp: App {
         WindowGroup {
             //ContentView()
             //TimerTestView()
-            WorkoutTestView()
+            MainTabView()
             
         }
     }
