@@ -16,7 +16,7 @@ struct MainTabView: View {
             .tag(0)
 
             NavigationView {
-                AddPresetView(presetManager: presetManager)
+                AddPresetView(presetManager: presetManager,  selectedTab: $selectedTab)
             }
             .tabItem {
                 Image(systemName: "plus.circle")

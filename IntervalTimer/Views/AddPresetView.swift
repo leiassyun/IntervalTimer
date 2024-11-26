@@ -2,24 +2,25 @@ import SwiftUI
 
 struct AddPresetView: View {
     @ObservedObject var presetManager: PresetManager
+    @Binding var selectedTab: Int
 
-    @Environment(\.dismiss) var dismiss // To dismiss the view
-    @State private var presetName = "" // State for preset name
-    @State private var isShowingWorkoutModal = false // Controls whether the workout modal is shown
-    @State private var workouts: [(name: String, duration: Int)] = [] // List of added workouts
+    @Environment(\.dismiss) var dismiss
+    @State private var presetName = ""
+    @State private var workouts: [Workout] = []
 
     // States for workout modal
-    @State private var workoutName = "" // State for workout name in modal
-    @State private var workoutMinutes = 1 // Minutes input for workout duration
-    @State private var workoutSeconds = 0 // Seconds input for workout duration
-    @FocusState private var isWorkoutNameFocused: Bool // Tracks focus for workout name
+    @State private var isShowingWorkoutModal = false
+    @State private var workoutName = ""
+    @State private var workoutMinutes = 1
+    @State private var workoutSeconds = 0
+    @FocusState private var isWorkoutNameFocused: Bool
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 10) {
             // Preset Name Section
             ZStack(alignment: .leading) {
                 if presetName.isEmpty {
-                    Text("Preset name") // Placeholder text
+                    Text("Preset name")
                         .foregroundColor(.gray)
                         .font(.largeTitle)
                         .bold()
@@ -31,54 +32,36 @@ struct AddPresetView: View {
                     .foregroundColor(.white)
                     .padding(.leading)
             }
-            .padding(.top) // Add space at the top
-            .background(Color.black) // Background matches the rest of the view
+            .padding(.top)
+            .background(Color.black)
 
-            Spacer().frame(height: 20) // Add some space below the Preset Name
+            Spacer().frame(height: 20)
 
-            // List of Added Workouts
+            // List of Workouts
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    ForEach(workouts.indices, id: \.self) { index in
+                    ForEach(workouts) { workout in
                         HStack {
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    Text("\(workouts[index].name)")
-                                        .foregroundColor(.white)
-                                        //.font(.headline)
-                                        .font(.system(size: 24, weight: .bold))
-
-                                    
-                                    
-                                    Spacer() // Pushes the next Text to the right
-                                    
-                                    Text(formatDuration(workouts[index].duration))
-                                        .foregroundColor(.white)
-                                        //.font(.headline)
-                                        .font(.system(size: 24, weight: .bold)) // Bigger font size for name
-
-                                }
-                            }
+                           
+                            Text(workout.name)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 24, weight: .bold))
                             Spacer()
-//                            Button(action: {
-//                                // Remove workout
-//                                workouts.remove(at: index)
-//                            }) {
-//                                Image(systemName: "trash")
-//                                    .foregroundColor(.red)
-//                            }
+                                Text(workout.fDuration)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 24, weight: .bold))
+                            
+                            
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 10)
-                        //.background(Color.gray.opacity(0.2))
-                        //.cornerRadius(8)
-                        //.padding(.horizontal)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                        .padding(.horizontal)
                     }
 
-                    // Add Workout Button (Placed dynamically after the list)
-                    Button(action: {
-                        isShowingWorkoutModal = true // Show workout modal
-                    }) {
+                    // Add Workout Button
+                    Button(action: { isShowingWorkoutModal = true }) {
                         HStack {
                             Image(systemName: "plus")
                                 .foregroundColor(.white)
@@ -98,26 +81,19 @@ struct AddPresetView: View {
             Spacer()
         }
         .background(Color.black.edgesIgnoringSafeArea(.all))
-        .navigationTitle("") // Clear navigation bar title
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save") {
-                    let newPreset = Preset(
-                        name: presetName.isEmpty ? "Untitled" : presetName,
-                        workoutDuration: 0, // Default value for entire preset duration
-                        restDuration: 0,
-                        repeatCount: 0
-                    )
-                    presetManager.presets.append(newPreset)
-                    dismiss()
+                    savePreset()
                 }
                 .disabled(presetName.isEmpty)
                 .foregroundColor(presetName.isEmpty ? .gray : .green)
             }
         }
         .sheet(isPresented: $isShowingWorkoutModal) {
-            // Workout Modal View
+            // Workout Modal Content
             NavigationView {
                 VStack {
                     // Workout Name Input
@@ -157,11 +133,11 @@ struct AddPresetView: View {
                                 .cornerRadius(8)
                                 .foregroundColor(.white)
                                 .onChange(of: workoutMinutes) { newValue in
-                                    if newValue > 59 { workoutMinutes = 59 } // Clamp to max 59 minutes
-                                    if newValue < 0 { workoutMinutes = 0 }  // Clamp to min 0 minutes
+                                    if newValue > 59 { workoutMinutes = 59 }
+                                    if newValue < 0 { workoutMinutes = 0 }
                                 }
 
-                            Text(":") // Separator
+                            Text(":")
                                 .font(.largeTitle)
                                 .foregroundColor(.white)
 
@@ -175,8 +151,8 @@ struct AddPresetView: View {
                                 .cornerRadius(8)
                                 .foregroundColor(.white)
                                 .onChange(of: workoutSeconds) { newValue in
-                                    if newValue > 59 { workoutSeconds = 59 } // Clamp to max 59 seconds
-                                    if newValue < 0 { workoutSeconds = 0 }  // Clamp to min 0 seconds
+                                    if newValue > 59 { workoutSeconds = 59 }
+                                    if newValue < 0 { workoutSeconds = 0 }
                                 }
                         }
                         .padding(.horizontal)
@@ -191,43 +167,56 @@ struct AddPresetView: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Cancel") {
-                            isShowingWorkoutModal = false // Dismiss the modal
+                            clearModal()
                         }
                         .foregroundColor(.red)
                     }
 
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Save") {
-                            // Save the workout and dismiss the modal
-                            if !workoutName.isEmpty && (workoutMinutes > 0 || workoutSeconds > 0) {
-                                let totalDuration = workoutMinutes * 60 + workoutSeconds
-                                workouts.append((name: workoutName, duration: totalDuration))
-                                workoutName = "" // Clear fields for next use
-                                workoutMinutes = 1
-                                workoutSeconds = 0
-                                isShowingWorkoutModal = false
-                            }
+                            saveWorkout()
                         }
-                        .foregroundColor((workoutName.isEmpty || (workoutMinutes == 0 && workoutSeconds == 0)) ? .gray : .green)
+                        .foregroundColor(workoutName.isEmpty || (workoutMinutes == 0 && workoutSeconds == 0) ? .gray : .green)
                         .disabled(workoutName.isEmpty || (workoutMinutes == 0 && workoutSeconds == 0))
                     }
                 }
                 .onAppear {
-                    // Automatically focus the workout name TextField
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         isWorkoutNameFocused = true
                     }
                 }
             }
-            .presentationDetents([.fraction(0.5)]) // Set modal height to half the screen
-            .presentationDragIndicator(.visible) // Show a drag indicator
+            .presentationDetents([.fraction(0.5)])
+            .presentationDragIndicator(.visible)
         }
     }
 
-    // Helper function to format duration into MM:SS format
-    private func formatDuration(_ duration: Int) -> String {
-        let minutes = duration / 60
-        let seconds = duration % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+    private func savePreset() {
+        let totalDuration = workouts.reduce(0) { $0 + $1.duration }
+        let newPreset = Preset(
+            name: presetName.isEmpty ? "Untitled" : presetName,
+            workouts: workouts,
+            totalDuration: totalDuration
+        )
+        presetManager.presets.append(newPreset)
+        presetName = ""
+        workouts = []
+        selectedTab = 0
+        dismiss()
+    }
+
+    private func clearModal() {
+        workoutName = ""
+        workoutMinutes = 1
+        workoutSeconds = 0
+        isShowingWorkoutModal = false
+    }
+
+    private func saveWorkout() {
+        guard !workoutName.isEmpty, workoutMinutes > 0 || workoutSeconds > 0 else { return }
+        let totalDuration = workoutMinutes * 60 + workoutSeconds
+        let newWorkout = Workout(name: workoutName, duration: totalDuration) // Save raw duration
+        workouts.append(newWorkout)
+        clearModal() // Reset modal state
     }
 }
