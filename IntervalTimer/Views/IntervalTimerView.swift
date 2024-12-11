@@ -5,18 +5,18 @@ struct IntervalTimerView: View {
 
     @State private var currentWorkoutIndex = 0
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var remainingTime: TimeInterval = 0
     @State private var isPlaying = false
     @State private var timer: Timer? = nil
+    @State private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+
 
     var body: some View {
         VStack {
-            // Top Navigation Bar
             HStack {
                 Button(action: {
                     goBackToPrevWorkout()
-                    
-
                 }) {
                     Image(systemName: "arrow.backward.circle")
                         .resizable()
@@ -53,7 +53,7 @@ struct IntervalTimerView: View {
                     Text(preset.workouts[currentWorkoutIndex].name)
                         .font(.title)
                         .bold()
-                        .foregroundColor(.white)
+                        .foregroundColor(appearanceManager.fontColor)
                         .padding()
                 } else {
                     Text("Workout Complete!")
@@ -71,7 +71,7 @@ struct IntervalTimerView: View {
             // Timer Display
             Text(formatTime(remainingTime))
                 .font(.system(size: 80, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(appearanceManager.fontColor)
                 .padding()
 
             Spacer()
@@ -88,17 +88,17 @@ struct IntervalTimerView: View {
 
             Spacer()
         }
-        .background(Color.black.edgesIgnoringSafeArea(.all))
-        .toolbar(.hidden, for: .tabBar)
+        .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .tabBar)
 
         .onAppear {
             startWorkout()
-            
+            setTabBarVisibility(hidden: true)
         }
         .onDisappear {
             stopTimer()
-            
+            setTabBarVisibility(hidden: false)
         }
     }
         
@@ -114,6 +114,8 @@ struct IntervalTimerView: View {
         let currentWorkout = preset.workouts[currentWorkoutIndex]
         remainingTime = Double(currentWorkout.duration)
 
+        startBackgroundTask() // Start background task
+
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if remainingTime > 0 {
                 remainingTime -= 1
@@ -126,6 +128,7 @@ struct IntervalTimerView: View {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
+        endBackgroundTask() // End background task
     }
 
     private func togglePlayPause() {
@@ -187,11 +190,29 @@ struct IntervalTimerView: View {
             startWorkout()
         }
     }
+    private func startBackgroundTask() {
+            backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "IntervalTimer") {
+                // Called when the background time is about to expire
+                endBackgroundTask()
+            }
+        }
+
+    private func endBackgroundTask() {
+        if backgroundTask != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTask)
+            backgroundTask = .invalid
+        }
+    }
     // MARK: - Time Formatting
 
     private func formatTime(_ time: TimeInterval) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+    private func setTabBarVisibility(hidden: Bool) {
+        if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
+            tabBarController.tabBar.isHidden = hidden
+        }
     }
 }

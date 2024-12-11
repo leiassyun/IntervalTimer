@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AddPresetView: View {
+    @EnvironmentObject var appearanceManager: AppearanceManager
     @ObservedObject var presetManager: PresetManager
     @Binding var selectedTab: Int
 
@@ -29,11 +30,11 @@ struct AddPresetView: View {
                 TextField("", text: $presetName)
                     .font(.largeTitle)
                     .bold()
-                    .foregroundColor(.white)
+                    .foregroundColor(appearanceManager.fontColor)
                     .padding(.leading)
             }
             .padding(.top)
-            .background(Color.black)
+            .background(appearanceManager.backgroundColor)
 
             Spacer().frame(height: 20)
 
@@ -44,11 +45,11 @@ struct AddPresetView: View {
                         HStack {
                            
                             Text(workout.name)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(appearanceManager.fontColor)
                                     .font(.system(size: 24, weight: .bold))
                             Spacer()
                                 Text(workout.fDuration)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(appearanceManager.fontColor)
                                     .font(.system(size: 24, weight: .bold))
                             
                             
@@ -64,7 +65,7 @@ struct AddPresetView: View {
                     Button(action: { isShowingWorkoutModal = true }) {
                         HStack {
                             Image(systemName: "plus")
-                                .foregroundColor(.white)
+                                .foregroundColor(appearanceManager.fontColor)
                             Text("Add workout")
                                 .foregroundColor(.gray)
                                 .font(.headline)
@@ -80,7 +81,7 @@ struct AddPresetView: View {
 
             Spacer()
         }
-        .background(Color.black.edgesIgnoringSafeArea(.all))
+        .background(appearanceManager.backgroundColor)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -107,7 +108,7 @@ struct AddPresetView: View {
                         TextField("", text: $workoutName)
                             .focused($isWorkoutNameFocused) // Attach focus state
                             .font(.title)
-                            .foregroundColor(.white)
+                            .foregroundColor(appearanceManager.fontColor)
                             .padding()
                     }
                     .background(Color.gray.opacity(0.2))
@@ -116,13 +117,13 @@ struct AddPresetView: View {
                     .padding(.top)
 
                     // Workout Duration Input (Minute:Second Format)
-                    VStack(alignment: .center, spacing: 8) {
+                    VStack(alignment: .leading) {
                         Text("Count")
                             .foregroundColor(.gray)
                             .font(.headline)
                             .padding(.horizontal)
 
-                        HStack {
+                        HStack(alignment: .center) {
                             // Minutes Input
                             TextField("00", value: $workoutMinutes, formatter: NumberFormatter())
                                 .keyboardType(.numberPad)
@@ -131,7 +132,7 @@ struct AddPresetView: View {
                                 .frame(width: 60)
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)
-                                .foregroundColor(.white)
+                                .foregroundColor(appearanceManager.fontColor)
                                 .onChange(of: workoutMinutes) { newValue in
                                     if newValue > 59 { workoutMinutes = 59 }
                                     if newValue < 0 { workoutMinutes = 0 }
@@ -139,7 +140,7 @@ struct AddPresetView: View {
 
                             Text(":")
                                 .font(.largeTitle)
-                                .foregroundColor(.white)
+                                .foregroundColor(appearanceManager.fontColor)
 
                             // Seconds Input
                             TextField("00", value: $workoutSeconds, formatter: NumberFormatter())
@@ -149,7 +150,7 @@ struct AddPresetView: View {
                                 .frame(width: 60)
                                 .background(Color.gray.opacity(0.2))
                                 .cornerRadius(8)
-                                .foregroundColor(.white)
+                                .foregroundColor(appearanceManager.fontColor)
                                 .onChange(of: workoutSeconds) { newValue in
                                     if newValue > 59 { workoutSeconds = 59 }
                                     if newValue < 0 { workoutSeconds = 0 }
@@ -161,7 +162,7 @@ struct AddPresetView: View {
 
                     Spacer()
                 }
-                .background(Color.black.edgesIgnoringSafeArea(.all))
+                .background(appearanceManager.backgroundColor)
                 .navigationTitle("")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
