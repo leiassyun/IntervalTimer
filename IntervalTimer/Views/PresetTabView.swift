@@ -7,6 +7,7 @@ struct PresetTabView: View {
     @State private var showActionSheet = false
     @State private var selectedPreset: Preset?
     @State private var navigateToTimer = false
+    @State private var navigateToAddPreset = false
     @State private var showDetail = false
     @State private var isShowingDeleteAlert = false
 
@@ -15,6 +16,12 @@ struct PresetTabView: View {
     var body: some View {
         ZStack{
             appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all)
+            if showDetail {
+                Color(UIColor(red: 91/255, green: 76/255, blue: 113/255, alpha: 0.9))
+//                Color.red.opacity(0.3) // Background color behind the sheet
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+            }
         VStack {
             // Title Bar
             HStack {
@@ -54,28 +61,29 @@ struct PresetTabView: View {
                                     } label: {
                                         HStack {
                                             Image(systemName: "play.fill")
-                                                .foregroundColor(Color.green)
+                                                .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                                             Text("Play")
-                                                .foregroundColor(Color.green)
+                                                .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                                                 .font(.system(size: 16, weight: .semibold))
                                         }
                                         .frame(width: 250, height: 40)
-                                        .background(Color.green.opacity(0.5))
+                                       .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
+
                                         .cornerRadius(8)
                                     }
                                     
                                     Spacer()
                                     
                                     // More Options Button
-                                    Button {
-                                        selectedPreset = preset
-                                        showActionSheet = true
-                                    } label: {
-                                        Image(systemName: "ellipsis")
-                                            .foregroundColor(appearanceManager.fontColor)
-                                    }
-                                    .padding(.leading, 8)
-                                    .frame(width: 30, height: 40, alignment: .center)
+//                                    Button {
+//                                        selectedPreset = preset
+//                                        showActionSheet = true
+//                                    } label: {
+//                                        Image(systemName: "ellipsis")
+//                                            .foregroundColor(appearanceManager.fontColor)
+//                                    }
+//                                    .padding(.leading, 8)
+//                                    .frame(width: 30, height: 40, alignment: .center)
                                 }
                             }
                         }
@@ -92,7 +100,7 @@ struct PresetTabView: View {
                     
                     // Add Preset Button
                     Button {
-                        selectedTab = 1 // Navigate to Add Preset screen
+                        selectedTab = 1
                     } label: {
                         HStack {
                             Image(systemName: "plus")
@@ -112,17 +120,29 @@ struct PresetTabView: View {
             }
             Spacer()
             NavigationLink(
-                destination: selectedPreset.map { IntervalTimerView(preset: $0) },
+                destination: AddPresetView(
+                    selectedPreset: selectedPreset, 
+                    presetManager: presetManager,
+                    selectedTab: $selectedTab
+                ),
+                isActive: $navigateToAddPreset
+            ) {
+                EmptyView()
+            }
+            NavigationLink(
+                destination: IntervalTimerView(preset: selectedPreset),
                 isActive: $navigateToTimer
             ) {
                 EmptyView()
             }
+           
             
         }
         .sheet(isPresented: $showDetail) {
             if let preset = selectedPreset {
                 PresetDetailView(
                     preset: preset,
+                    presetManager: presetManager,
                     onPlay: {
                         showDetail = false
                         navigateToTimer = true
@@ -130,6 +150,10 @@ struct PresetTabView: View {
                     onNavigateToTimer: {
                         showDetail = false
                         navigateToTimer = true 
+                    },
+                    onNavigateToAddPreset: {
+                        showDetail = false
+                        navigateToAddPreset = true
                     }
                 )
                 .presentationDetents([.medium, .large])
@@ -139,39 +163,39 @@ struct PresetTabView: View {
     }
         
         
-        .actionSheet(isPresented: $showActionSheet) {
-            ActionSheet(
-                title: Text(""),
-                buttons: [
-                    .default(Text("Edit")) {
-                        print("Edit selected for \(selectedPreset?.name ?? "unknown")")
-                    },
-                    .default(Text("Duplicate")) {
-                        if let presetID = presetManager.presets.first?.id {
-                            presetManager.duplicatePreset(presetID: presetID)
-                        }
-                    },
-                    .default(Text("Share")) {
-                        print("Share selected for \(selectedPreset?.name ?? "unknown")")
-                    },
-                    .destructive(Text("Delete")) {
-                        isShowingDeleteAlert = true
-                    },
-                    .cancel()
-                ]
-            )
-        }
-        .alert(isPresented: $isShowingDeleteAlert) {
-                    Alert(
-                        title: Text("Are you sure you want to delete this preset?"),
-                        primaryButton: .destructive(Text("Delete")) {
-                            if let presetID = selectedPreset?.id {
-                                            presetManager.deletePreset(by: presetID)
-                                            selectedPreset = nil
-                                        }
-                        },
-                        secondaryButton: .cancel()
-                    )
-                }
+//        .actionSheet(isPresented: $showActionSheet) {
+//            ActionSheet(
+//                title: Text(""),
+//                buttons: [
+//                    .default(Text("Edit")) {
+//                        print("Edit selected for \(selectedPreset?.name ?? "unknown")")
+//                    },
+//                    .default(Text("Duplicate")) {
+//                        if let presetID = presetManager.presets.first?.id {
+//                            presetManager.duplicatePreset(presetID: presetID)
+//                        }
+//                    },
+//                    .default(Text("Share")) {
+//                        print("Share selected for \(selectedPreset?.name ?? "unknown")")
+//                    },
+//                    .destructive(Text("Delete")) {
+//                        isShowingDeleteAlert = true
+//                    },
+//                    .cancel()
+//                ]
+//            )
+//        }
+//        .alert(isPresented: $isShowingDeleteAlert) {
+//                    Alert(
+//                        title: Text("Are you sure you want to delete this preset?"),
+//                        primaryButton: .destructive(Text("Delete")) {
+//                            if let presetID = selectedPreset?.id {
+//                                            presetManager.deletePreset(by: presetID)
+//                                            selectedPreset = nil
+//                                        }
+//                        },
+//                        secondaryButton: .cancel()
+//                    )
+//                }
     }
 }

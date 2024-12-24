@@ -21,7 +21,7 @@ struct IntervalTimerView: View {
                     Image(systemName: "arrow.backward.circle")
                         .resizable()
                         .frame(width: 30, height: 30)
-                        .foregroundColor(.green)
+                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                 }
                 Spacer()
                 Button(action: {
@@ -29,9 +29,12 @@ struct IntervalTimerView: View {
                     dismiss()
                 }) {
                     Text("Hold to exit")
-                        .foregroundColor(.green)
-                        .padding(10)
-                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.green, lineWidth: 2))
+                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                        .padding(15)
+                        .background(
+                               RoundedRectangle(cornerRadius: 15)
+                                   .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
+                           )
                 }
                 Spacer()
                 Button(action: {
@@ -40,7 +43,7 @@ struct IntervalTimerView: View {
                     Image(systemName: "arrow.forward.circle")
                         .resizable()
                         .frame(width: 30, height: 30)
-                        .foregroundColor(.green)
+                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                 }
             }
             .padding()
@@ -58,7 +61,7 @@ struct IntervalTimerView: View {
                 } else {
                     Text("Workout Complete!")
                         .font(.largeTitle)
-                        .foregroundColor(.green)
+                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                         .padding()
                 }
             } else {
@@ -80,11 +83,17 @@ struct IntervalTimerView: View {
             Button(action: {
                 togglePlayPause()
             }) {
-                Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .resizable()
-                    .frame(width: 80, height: 80)
-                    .foregroundColor(.green)
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill") // Dynamically switch between play/pause
+                    .resizable() // Enable resizing
+                    .scaledToFit() // Maintain aspect ratio
+                    .frame(width: 40, height: 40) // Set the icon size
+                    .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1))) // Bright green icon
             }
+            .frame(width: 80, height: 80) // Set the overall button size
+            .background(
+                Circle()
+                    .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15))) // Semi-transparent background
+            )
 
             Spacer()
         }
@@ -165,7 +174,7 @@ struct IntervalTimerView: View {
         guard let preset = preset else { return }
         currentWorkoutIndex -= 1
 
-        if currentWorkoutIndex < preset.workouts.count && currentWorkoutIndex > -1 {
+        if currentWorkoutIndex < preset.workouts.count && currentWorkoutIndex > 0 {
             remainingTime = Double(preset.workouts[currentWorkoutIndex].duration)
         } else {
             // All workouts complete
@@ -174,16 +183,22 @@ struct IntervalTimerView: View {
     }
 
     private func skipToNextWorkout() {
+        guard let preset = preset, currentWorkoutIndex < preset.workouts.count - 1 else {
+               return
+           }
         stopTimer()
         moveToNextWorkout()
         // startWorkout()
         if isPlaying {
-            startWorkout() // Auto start?
+            startWorkout()
         }
         
     }
 
     private func goBackToPrevWorkout() {
+        guard currentWorkoutIndex > 0 else {
+                return
+            }
         stopTimer()
         moveToPrevWorkout()
         if isPlaying {

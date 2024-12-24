@@ -2,12 +2,17 @@ import SwiftUI
 
 struct PresetDetailView: View {
     let preset: Preset
+    @ObservedObject var presetManager: PresetManager
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appearanceManager: AppearanceManager
-    @State private var navigateToTimer = false // Controls NavigationLink activation
+    @State private var navigateToTimer = false 
+    @State private var navigateToAddPreset = false // State variable to navigate to AddPresetView
+
     var onPlay: () -> Void
     var onNavigateToTimer: () -> Void
-
+    var onNavigateToAddPreset: () -> Void
+    
+ 
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -26,23 +31,27 @@ struct PresetDetailView: View {
                         print("Share tapped")
                     }) {
                         Text("Share")
-                            .foregroundColor(.green)
+                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                             .font(.headline)
                     }
                     .padding()
                     Button(action: {
-                        print("Duplicate tapped")
+                        presetManager.duplicatePreset(presetID: preset.id) 
+                       
                     }) {
                         Text("Duplicate")
-                            .foregroundColor(.green)
+                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                             .font(.headline)
                     }
                     .padding()
                     Button(action: {
-                        print("Edit tapped")
+                        navigateToAddPreset = true
+                        dismiss()
+                        onNavigateToAddPreset()
+
                     }) {
                         Text("Edit")
-                            .foregroundColor(.green)
+                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                             .font(.headline)
                     }
                 }
@@ -56,24 +65,24 @@ struct PresetDetailView: View {
                     .padding(.horizontal)
 
                 // Workout Details
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
                     ForEach(preset.workouts) { workout in
                         HStack {
                             Text(workout.name)
                                 .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 30, weight: .bold))
                             Spacer()
                             Text(workout.fDuration)
                                 .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(size: 30, weight: .bold))
                         }
-                        .padding(.horizontal)
+                        
                         .padding(.vertical, 10)
-                        .background(Color.gray.opacity(0.2))
+                        //.background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
-                        .padding(.horizontal)
                     }
                 }
+                .padding(.horizontal)
                 Spacer()
     
                 HStack {
@@ -86,13 +95,13 @@ struct PresetDetailView: View {
                      
                         HStack {
                             Image(systemName: "play.fill")
-                                .foregroundColor(Color.green)
+                                .foregroundColor(.black)
                             Text("Play")
-                                .foregroundColor(Color.green)
+                                .foregroundColor(.black)
                                 .font(.system(size: 16, weight: .semibold))
                         }
                         .frame(width: 350, height: 40)
-                        .background(Color.green.opacity(0.5))
+                        .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                         .cornerRadius(8)
                     }
                     Spacer()
