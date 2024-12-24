@@ -5,33 +5,34 @@ struct MainTabView: View {
     @State private var selectedTab = 0 // Tracks the selected tab (0 = Presets, 1 = Add Preset, 2 = Settings)
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationView {
+        NavigationView {
+            TabView(selection: $selectedTab) {
                 PresetTabView(presetManager: presetManager, selectedTab: $selectedTab)
-            }
-            .tabItem {
-                Image(systemName: "list.bullet")
-                Text("Presets")
-            }
-            .tag(0)
+                    .tabItem {
+                        Image(systemName: "list.bullet")
+                        Text("Presets")
+                    }
+                    .tag(0)
 
-            NavigationView {
-                AddPresetView(presetManager: presetManager,  selectedTab: $selectedTab)
-            }
-            .tabItem {
-                Image(systemName: "plus.circle")
-                Text("Add Preset")
-            }
-            .tag(1)
+               
+                AddPresetView(
+                    selectedPreset: nil, 
+                    presetManager: presetManager,
+                    selectedTab: $selectedTab
+                )
+                    .tabItem {
+                        Image(systemName: "plus.circle")
+                        Text("Add Preset")
+                    }
+                    .tag(1)
 
-            NavigationView {
-                Text("Settings View")
+                SettingsView(selectedTab: $selectedTab)
+                    .tabItem {
+                        Image(systemName: "gearshape")
+                        Text("Settings")
+                    }
+                    .tag(2)
             }
-            .tabItem {
-                Image(systemName: "gearshape")
-                Text("Settings")
-            }
-            .tag(2)
         }
     }
 }
@@ -39,5 +40,7 @@ struct MainTabView: View {
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
         MainTabView()
+            .environmentObject(AppearanceManager())
+
     }
 }

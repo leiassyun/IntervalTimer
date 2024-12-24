@@ -2,110 +2,113 @@ import SwiftUI
 
 struct PresetDetailView: View {
     let preset: Preset
+    @ObservedObject var presetManager: PresetManager
     @Environment(\.dismiss) var dismiss
-    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var appearanceManager: AppearanceManager
+    @State private var navigateToTimer = false 
+    @State private var navigateToAddPreset = false // State variable to navigate to AddPresetView
 
-    @State private var navigateToTimer = false
-
+    var onPlay: () -> Void
+    var onNavigateToTimer: () -> Void
+    var onNavigateToAddPreset: () -> Void
+    
+ 
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    Image(systemName: "xmark")
-                        .foregroundColor(.white)
-                        .padding(7)
-                        .background(Circle().fill(Color.gray.opacity(0.6)))
-                        .frame(width: 20, height: 20)
-
-                }
-                Spacer()
-                Button(action: {
-                    print("Share tapped")
-                }) {
-                    Text("Share")
-                        .foregroundColor(.green)
-                        .font(.headline)
-                }
-                .padding()
-                Button(action: {
-                    print("Duplicate tapped")
-                }) {
-                    Text("Duplicate")
-                        .foregroundColor(.green)
-                        .font(.headline)
-                }
-                .padding()
-                
-                Button(action: {
-                    print("Edit tapped")
-                }) {
-                    Text("Edit")
-                        .foregroundColor(.green)
-                        .font(.headline)
-                }
-                
-            }
-            .padding()
-            
-
-            // Preset Title
-            Text(preset.name)
-                .foregroundColor(.white)
-                .font(.largeTitle)
-                .bold()
-                .padding(.horizontal)
-                
-            
-
-            // Workout Details
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(preset.workouts) { workout in
-                    HStack {
-                        Text(workout.name)
-                            .foregroundColor(.white)
-                            .font(.system(size: 20, weight: .bold))
-                        Spacer()
-                        Text(workout.fDuration)
-                            .foregroundColor(.white)
-                            .font(.system(size: 20, weight: .bold))
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
-                    .padding(.horizontal)
-                }
-            }
-            Spacer()
-            
-
-            // Play Button
-            Button(action: {
-                navigateToTimer = true
-            }) {
+        NavigationStack {
+            VStack(alignment: .leading) {
                 HStack {
-                    Image(systemName: "play.fill")
-                    Text("Play")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .foregroundColor(.black)
-                .background(Color.green)
-                .cornerRadius(10)
-                .padding(.horizontal)
-            }
-            .padding(.bottom, 20)
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(appearanceManager.fontColor)
+                            .padding(7)
+                            .background(Circle().fill(Color.gray.opacity(0.6)))
+                            .frame(width: 20, height: 20)
+                    }
+                    Spacer()
+                    Button(action: {
+                        print("Share tapped")
+                    }) {
+                        Text("Share")
+                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                            .font(.headline)
+                    }
+                    .padding()
+                    Button(action: {
+                        presetManager.duplicatePreset(presetID: preset.id) 
+                       
+                    }) {
+                        Text("Duplicate")
+                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                            .font(.headline)
+                    }
+                    .padding()
+                    Button(action: {
+                        navigateToAddPreset = true
+                        dismiss()
+                        onNavigateToAddPreset()
 
-            // Navigation to Timer View
-            NavigationLink(
-                destination: IntervalTimerView(preset: preset),
-                isActive: $navigateToTimer
-            ) {
-                EmptyView()
+                    }) {
+                        Text("Edit")
+                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                            .font(.headline)
+                    }
+                }
+                .padding()
+
+                // Preset Title
+                Text(preset.name)
+                    .foregroundColor(appearanceManager.fontColor)
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.horizontal)
+
+                // Workout Details
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(preset.workouts) { workout in
+                        HStack {
+                            Text(workout.name)
+                                .foregroundColor(appearanceManager.fontColor)
+                                .font(.system(size: 30, weight: .bold))
+                            Spacer()
+                            Text(workout.fDuration)
+                                .foregroundColor(appearanceManager.fontColor)
+                                .font(.system(size: 30, weight: .bold))
+                        }
+                        
+                        .padding(.vertical, 10)
+                        //.background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                    }
+                }
+                .padding(.horizontal)
+                Spacer()
+    
+                HStack {
+                    Spacer()
+                    Button (action: {
+                        navigateToTimer = true
+                            dismiss()
+                            onNavigateToTimer()
+                    }) {
+                     
+                        HStack {
+                            Image(systemName: "play.fill")
+                                .foregroundColor(.black)
+                            Text("Play")
+                                .foregroundColor(.black)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .frame(width: 350, height: 40)
+                        .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                        .cornerRadius(8)
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 20)
             }
+            .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
         }
-        .background(Color.black.edgesIgnoringSafeArea(.all))
     }
 }
