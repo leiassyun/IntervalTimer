@@ -2,36 +2,37 @@ import SwiftUI
 
 struct MainTabView: View {
     @StateObject private var presetManager = PresetManager()
-    @State private var selectedTab = 0 // Tracks the selected tab (0 = Presets, 1 = Add Preset, 2 = Settings)
-
+    @State private var selectedTab = 0
+    
     var body: some View {
         NavigationView {
-            TabView(selection: $selectedTab) {
-                PresetTabView(presetManager: presetManager, selectedTab: $selectedTab)
-                    .tabItem {
-                        Image(systemName: "list.bullet")
-                        Text("Presets")
-                    }
-                    .tag(0)
+            ZStack {
+                // Main TabView
+                if selectedTab != 2 { // Hide TabView when selectedTab == 2
+                                   TabView(selection: $selectedTab) {
+                                       PresetTabView(presetManager: presetManager, selectedTab: $selectedTab)
+                                           .tabItem {
+                                               Text("Preset")
+                                                   .font(.system(size: 50, weight: .bold, design: .default))
+                                           }
+                                           .tag(0)
 
-               
-                AddPresetView(
-                    selectedPreset: nil, 
-                    presetManager: presetManager,
-                    selectedTab: $selectedTab
-                )
-                    .tabItem {
-                        Image(systemName: "plus.circle")
-                        Text("Add Preset")
-                    }
-                    .tag(1)
-
-                SettingsView(selectedTab: $selectedTab)
-                    .tabItem {
-                        Image(systemName: "gearshape")
-                        Text("Settings")
-                    }
-                    .tag(2)
+                                       SettingsView(selectedTab: $selectedTab)
+                                           .tabItem {
+                                               Text("Menu")
+                                           }
+                                           .tag(1)
+                                   }
+                               }
+                if selectedTab == 2 {
+                    AddPresetView(
+                        selectedPreset: nil,
+                        presetManager: presetManager,
+                        selectedTab: $selectedTab
+                    )
+                    .transition(.move(edge: .trailing)) // Animation for smooth appearance
+                    .zIndex(1) // Bring AddPresetView to the front
+                }
             }
         }
     }
@@ -41,6 +42,5 @@ struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
         MainTabView()
             .environmentObject(AppearanceManager())
-
     }
 }
