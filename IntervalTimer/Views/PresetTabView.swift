@@ -18,7 +18,6 @@ struct PresetTabView: View {
             appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all)
             if showDetail {
                 Color(UIColor(red: 91/255, green: 76/255, blue: 113/255, alpha: 0.9))
-                //                Color.red.opacity(0.3) // Background color behind the sheet
                     .ignoresSafeArea()
                     .transition(.opacity)
             }
@@ -46,7 +45,7 @@ struct PresetTabView: View {
                 Spacer().frame(height: 20)
 
                 Button {
-                    selectedTab = 1
+                    //selectedTab = 1
                 } label: {
                     HStack {
                       
@@ -94,11 +93,13 @@ struct PresetTabView: View {
                                     
                                     HStack {
                                         Image(systemName: "clock")
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(.white)
                                         Text(preset.fTotalDuration)
                                             .font(.subheadline)
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(.white)
                                     }
+                                    Spacer().frame(height: 3)
+
                                     
                                     HStack{
                                         // Play Button
@@ -113,13 +114,13 @@ struct PresetTabView: View {
                                                     .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                                                     .font(.system(size: 16, weight: .semibold))
                                             }
-                                            .frame(width: 250, height: 40)
+                                            .frame(width: 280, height: 50)
                                             .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
                                             
                                             .cornerRadius(8)
                                         }
                                         
-                                        Spacer().frame(width: 10)
+                                        Spacer()
                                         
                                         
                                         Button {
@@ -131,9 +132,14 @@ struct PresetTabView: View {
                                         }
                                         .font(.system(size: 20))
                                         .padding()
-                                       .background(Color.gray.opacity(0.3))
-                                       .cornerRadius(8)
+                                       .background(
+                                        Color.gray.opacity(0.3)
+                                            .cornerRadius(8)
+                                            .frame(height: 50)
+                                       )
+                                       
                                     }
+                                    .frame(maxWidth: .infinity)
                                 }
                             }
                             .frame(maxWidth: .infinity)
@@ -146,10 +152,19 @@ struct PresetTabView: View {
                                 //showDetail = true
                             }
                         }
+                        .frame(maxWidth: .infinity)
+                        
                         
                     }
                 }
                 Spacer()
+               
+                NavigationLink(
+                    destination: IntervalTimerView(preset: selectedPreset),
+                    isActive: $navigateToTimer
+                ) {
+                    EmptyView()
+                }
                 NavigationLink(
                     destination: AddPresetView(
                         selectedPreset: selectedPreset,
@@ -160,12 +175,7 @@ struct PresetTabView: View {
                 ) {
                     EmptyView()
                 }
-                NavigationLink(
-                    destination: IntervalTimerView(preset: selectedPreset),
-                    isActive: $navigateToTimer
-                ) {
-                    EmptyView()
-                }
+            
                 
             }
             .sheet(isPresented: $showDetail) {
@@ -183,7 +193,7 @@ struct PresetTabView: View {
                         },
                         onNavigateToAddPreset: {
                             showDetail = false
-                            navigateToAddPreset = true
+                          navigateToAddPreset = true
                         }
                     )
                     .presentationDetents([.medium, .large])

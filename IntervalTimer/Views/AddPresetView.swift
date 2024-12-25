@@ -4,6 +4,7 @@ struct AddPresetView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @ObservedObject var presetManager: PresetManager
     @Binding var selectedTab: Int
+    @State private var selectedPreset: Preset?
     @State private var isOverlayVisible = false
     
     @Environment(\.dismiss) var dismiss
@@ -23,6 +24,7 @@ struct AddPresetView: View {
     init(selectedPreset: Preset?, presetManager: PresetManager, selectedTab: Binding<Int>) {
         _presetName = State(initialValue: selectedPreset?.name ?? "")
         _workouts = State(initialValue: selectedPreset?.workouts ?? [])
+        self.selectedPreset = selectedPreset // Use this variable
         _presetManager = ObservedObject(wrappedValue: presetManager)
         _selectedTab = selectedTab
     }
@@ -97,7 +99,7 @@ struct AddPresetView: View {
                                         .foregroundColor(appearanceManager.fontColor)
                                         .font(.system(size: 24, weight: .bold))
                                 }
-
+                                
                                 TextField(
                                     "",
                                     text: Binding(
@@ -137,7 +139,7 @@ struct AddPresetView: View {
                         .background(Color.clear)
                         .swipeActions {
                             Button(role: .destructive) {
-                                workouts.remove(at: index) 
+                                workouts.remove(at: index)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -169,6 +171,8 @@ struct AddPresetView: View {
                     workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
                 }
             }
+
+            
             Spacer()
             
             HStack {
@@ -190,7 +194,8 @@ struct AddPresetView: View {
                 Spacer()
                 
                 Button(action: {
-                    presetManager.addPreset(name: presetName, workouts: workouts)
+                    //presetManager.addPreset(name: presetName, workouts: workouts)
+                    saveChanges()
                     selectedTab = 0
                 }) {
                     HStack {
@@ -214,25 +219,34 @@ struct AddPresetView: View {
         }
     }
     
-//  
-//    private func clearModal() {
-//        workoutName = ""
-//        workoutMinutes = 1
-//        workoutSeconds = 0
-//        isShowingWorkoutModal = false
-//    }
-//    
-//    private func saveWorkout() {
-//        guard !workoutName.isEmpty, workoutMinutes > 0 || workoutSeconds > 0 else { return }
-//        let totalDuration = workoutMinutes * 60 + workoutSeconds
-//        let newWorkout = Workout(name: workoutName, duration: totalDuration) // Save raw duration
-//        workouts.append(newWorkout)
-//        clearModal()
-//    }
+    //
+    //    private func clearModal() {
+    //        workoutName = ""
+    //        workoutMinutes = 1
+    //        workoutSeconds = 0
+    //        isShowingWorkoutModal = false
+    //    }
+    //
+    //    private func saveWorkout() {
+    //        guard !workoutName.isEmpty, workoutMinutes > 0 || workoutSeconds > 0 else { return }
+    //        let totalDuration = workoutMinutes * 60 + workoutSeconds
+    //        let newWorkout = Workout(name: workoutName, duration: totalDuration) // Save raw duration
+    //        workouts.append(newWorkout)
+    //        clearModal()
+    //    }
     private func calculateTotalDuration() -> String {
         let totalSeconds = workouts.reduce(0) { $0 + $1.duration }
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+    private func saveChanges() {
+        if let preset = selectedPreset {
+            // Update existing preset
+            presetManager.updatePreset(preset: preset, workouts: workouts, name: presetName)
+        } else {
+            // Create a new preset
+            presetManager.addPreset(name: presetName, workouts: workouts)
+        }
     }
 }

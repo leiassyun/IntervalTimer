@@ -7,12 +7,12 @@ struct PresetDetailView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var navigateToTimer = false 
     @State private var navigateToAddPreset = false // State variable to navigate to AddPresetView
-
+    
     var onPlay: () -> Void
     var onNavigateToTimer: () -> Void
     var onNavigateToAddPreset: () -> Void
     
- 
+    
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -36,8 +36,9 @@ struct PresetDetailView: View {
                     }
                     .padding()
                     Button(action: {
-                        presetManager.duplicatePreset(presetID: preset.id) 
-                       
+                        presetManager.duplicatePreset(presetID: preset.id)
+                        dismiss()
+                        
                     }) {
                         Text("Duplicate")
                             .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
@@ -48,7 +49,7 @@ struct PresetDetailView: View {
                         navigateToAddPreset = true
                         dismiss()
                         onNavigateToAddPreset()
-
+                        
                     }) {
                         Text("Edit")
                             .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
@@ -56,43 +57,44 @@ struct PresetDetailView: View {
                     }
                 }
                 .padding()
-
+                
                 // Preset Title
                 Text(preset.name)
                     .foregroundColor(appearanceManager.fontColor)
                     .font(.largeTitle)
                     .bold()
                     .padding(.horizontal)
-
+                
                 // Workout Details
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(preset.workouts) { workout in
                         HStack {
+                            Image(systemName: "clock")
+                                .foregroundColor(appearanceManager.fontColor)
                             Text(workout.name)
                                 .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 30, weight: .bold))
+                                .font(.system(size: 25, weight: .bold))
                             Spacer()
                             Text(workout.fDuration)
                                 .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 30, weight: .bold))
+                                .font(.system(size: 25, weight: .bold))
                         }
                         
                         .padding(.vertical, 10)
-                        //.background(Color.gray.opacity(0.2))
                         .cornerRadius(8)
                     }
                 }
                 .padding(.horizontal)
                 Spacer()
-    
+                
                 HStack {
                     Spacer()
                     Button (action: {
                         navigateToTimer = true
-                            dismiss()
-                            onNavigateToTimer()
+                        dismiss()
+                        onNavigateToTimer()
                     }) {
-                     
+                        
                         HStack {
                             Image(systemName: "play.fill")
                                 .foregroundColor(.black)
@@ -100,9 +102,13 @@ struct PresetDetailView: View {
                                 .foregroundColor(.black)
                                 .font(.system(size: 16, weight: .semibold))
                         }
-                        .frame(width: 350, height: 40)
-                        .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                        .cornerRadius(8)
+                        
+                        .background(
+                            Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1))
+                                .cornerRadius(8)
+                                .frame(width: 350, height: 50)
+                        )
+                        
                     }
                     Spacer()
                 }

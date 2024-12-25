@@ -45,6 +45,13 @@ class PresetManager: ObservableObject {
         let totalSeconds = min((minutes * 60) + seconds, 99 * 60 + 59)
         return Workout(name: currentWorkout.name, duration: totalSeconds)
     }
+    func updatePreset(preset: Preset, workouts: [Workout], name: String) {
+        if let index = presets.firstIndex(where: { $0.id == preset.id }) {
+            presets[index].workouts = workouts
+            presets[index].name = name
+            presets[index].totalDuration = workouts.reduce(0) { $0 + $1.duration }
+        }
+    }
     
     func createWorkout(name: String, duration: Int) -> Workout {
         return Workout(name: name, duration: duration)
