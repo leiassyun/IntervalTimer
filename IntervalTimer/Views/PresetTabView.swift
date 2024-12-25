@@ -198,6 +198,8 @@ struct PresetTabView: View {
                     )
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.3), value: showDetail)
                 }
             }
         }

@@ -30,7 +30,7 @@ struct MainTabView: View {
                         presetManager: presetManager,
                         selectedTab: $selectedTab
                     )
-                    .transition(.move(edge: .trailing)) // Animation for smooth appearance
+                    .transition(.move(edge: .trailing))
                     .zIndex(1) // Bring AddPresetView to the front
                 }
             }
