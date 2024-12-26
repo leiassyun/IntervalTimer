@@ -2,124 +2,242 @@ import SwiftUI
 
 struct PresetTabView: View {
     @ObservedObject var presetManager: PresetManager
-    @Binding var selectedTab: Int // Bind to the tab selection in MainTabView
+    @EnvironmentObject var appearanceManager: AppearanceManager
+    @Binding var selectedTab: Int
     @State private var showActionSheet = false
     @State private var selectedPreset: Preset?
-
-
+    @State private var navigateToTimer = false
+    @State private var navigateToAddPreset = false
+    @State private var showDetail = false
+    @State private var isShowingDeleteAlert = false
+    
+    
+    
     var body: some View {
-        VStack {
-            HStack {
-                Text("Preset")
-                    .font(.largeTitle)
-                    .bold()
-                    .foregroundColor(.white)
-                Spacer()
+        ZStack{
+            appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all)
+            if showDetail {
+                Color(UIColor(red: 91/255, green: 76/255, blue: 113/255, alpha: 0.9))
+                    .ignoresSafeArea()
+                    .transition(.opacity)
             }
-            .padding(.horizontal)
-            .padding(.top)
+            VStack {
+                // Title Bar
+                HStack {
+                    Text("Preset")
+                        .font(.title)
+                        .bold()
+                        .foregroundColor(appearanceManager.fontColor)
+                    Spacer()
+                    Button(action: {
+                        selectedTab = 2
+                    }) {
+                        Image(systemName: "plus")
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                            .foregroundColor(.white)
+                            .font(.system(size: 20, weight: .bold))
+                    }
+                    
+                }
+                .padding(.horizontal)
+                .padding(.top)
+                Spacer().frame(height: 20)
 
-            // List of Added Workouts
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(presetManager.presets) { preset in
-                        HStack {
-                            // Preset Info: Name and Duration
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(preset.name)
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 24, weight: .bold)) // Larger, bold font for the preset name
-                                
-                                HStack {
-                                    Image(systemName: "clock")
-                                        .foregroundColor(.gray)
-                                    Text(preset.name) // Format duration (e.g., 12 min)
-                                        .foregroundColor(.gray)
-                                        .font(.subheadline)
-                                }
-                                
-                                
-                                HStack (alignment: .leading){
-                                    
-                                    // More Options Button
-                                    Button(action: {
-                                        // Placeholder action for Play button
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "play.fill")
-                                                .foregroundColor(.black)
-                                            Text("Play")
-                                                .foregroundColor(.black)
-                                        }
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color.green.opacity(0.8))
-                                        .cornerRadius(8)
-                                    }
-                                    Spacer()
-                                    
-                                    // More Options Button
-                                    Button(action: {
-                                        // Placeholder action for More Options button
-                                    }) {
-                                        Image(systemName: "ellipsis")
-                                            .foregroundColor(.white)
-                                    }
-                                    .actionSheet(isPresented: $showActionSheet) {
-                                        ActionSheet(
-                                            title: Text(selectedPreset?.name ?? "Preset"),
-                                            buttons: [
-                                                .default(Text("Edit")) {
-                                                    // Placeholder action for Edit
-                                                },
-                                                .default(Text("Duplicate")) {
-                                                    // Placeholder action for Duplicate
-                                                },
-                                                .default(Text("Share")) {
-                                                    // Placeholder action for Share
-                                                },
-                                                .cancel()
-                                            ]
-                                        )
-                                    }
-                                    .padding(.leading, 8)
-                                }
-                            }
-                        }
-                            
-                        .padding()
-                        .frame(maxWidth: .infinity) // Make the card take the full width
-                        .background(Color.gray.opacity(0.2)) // Card background
-                        .cornerRadius(12) // Rounded corners
-                        .padding(.horizontal)
-
+                Button {
+                    //selectedTab = 1
+                } label: {
+                    HStack {
+                      
+                        Text("Quick Start")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(appearanceManager.fontColor)
+                        
+                        Spacer()
+                        //Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                            .padding(8)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                         
                     }
-                    Button(action: {
-                        selectedTab = 1  // Show workout modal
-                    }) {
-                        HStack {
-                            Image(systemName: "plus")
-                                .foregroundColor(.white)
-                            Text("Add preset")
-                                .foregroundColor(.gray)
-                                .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                    
+                }
+//                if isExpanded {
+//                                VStack(alignment: .leading, spacing: 10) {
+//                                    Text("Option 1")
+//                                    Text("Option 2")
+//                                    Text("Option 3")
+//                                }
+//                                .padding()
+//                                .background(Color.black.opacity(0.1))
+//                                .cornerRadius(8)
+//                                .transition(.opacity)
+//                            }
+//                        }
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(presetManager.presets) { preset in
+                            HStack {
+                                // Preset Info: Name and Duration
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(preset.name)
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(appearanceManager.fontColor)
+                                    
+                                    HStack {
+                                        Image(systemName: "clock")
+                                            .foregroundColor(.white)
+                                        Text(preset.fTotalDuration)
+                                            .font(.subheadline)
+                                            .foregroundColor(.white)
+                                    }
+                                    Spacer().frame(height: 3)
+
+                                    
+                                    HStack{
+                                        // Play Button
+                                        Button {
+                                            selectedPreset = preset
+                                            navigateToTimer = true
+                                        } label: {
+                                            HStack {
+                                                Image(systemName: "play.fill")
+                                                    .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                                                Text("Play")
+                                                    .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                                                    .font(.system(size: 16, weight: .semibold))
+                                            }
+                                            .frame(width: 280, height: 50)
+                                            .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
+                                            
+                                            .cornerRadius(8)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        
+                                        Button {
+                                            selectedPreset = preset
+                                            showDetail = true
+                                        } label: {
+                                            Image(systemName: "ellipsis")
+                                                .foregroundColor(appearanceManager.fontColor)
+                                        }
+                                        .font(.system(size: 20))
+                                        .padding()
+                                       .background(
+                                        Color.gray.opacity(0.3)
+                                            .cornerRadius(8)
+                                            .frame(height: 50)
+                                       )
+                                       
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                            .onTapGesture {
+                                selectedPreset = preset
+                                //showDetail = true
+                            }
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                        .frame(maxWidth: .infinity)
+                        
+                        
                     }
-                    Spacer().frame(height: 20)
+                }
+                Spacer()
+               
+                NavigationLink(
+                    destination: IntervalTimerView(preset: selectedPreset),
+                    isActive: $navigateToTimer
+                ) {
+                    EmptyView()
+                }
+                NavigationLink(
+                    destination: AddPresetView(
+                        selectedPreset: selectedPreset,
+                        presetManager: presetManager,
+                        selectedTab: $selectedTab
+                    ),
+                    isActive: $navigateToAddPreset
+                ) {
+                    EmptyView()
+                }
+            
+                
+            }
+            .sheet(isPresented: $showDetail) {
+                if let preset = selectedPreset {
+                    PresetDetailView(
+                        preset: preset,
+                        presetManager: presetManager,
+                        onPlay: {
+                            showDetail = false
+                            navigateToTimer = true
+                        },
+                        onNavigateToTimer: {
+                            showDetail = false
+                            navigateToTimer = true
+                        },
+                        onNavigateToAddPreset: {
+                            showDetail = false
+                          navigateToAddPreset = true
+                        }
+                    )
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.3), value: showDetail)
                 }
             }
-
-
-            Spacer()
         }
-        .background(Color.black.edgesIgnoringSafeArea(.all))
-        .navigationBarHidden(true) // Hide default navigation bar
+        
+        
+//        .actionSheet(isPresented: $showActionSheet) {
+//            ActionSheet(
+//                title: Text(""),
+//                buttons: [
+//                    .default(Text("Edit")) {
+//                        print("Edit selected for \(selectedPreset?.name ?? "unknown")")
+//                    },
+//                    .default(Text("Duplicate")) {
+//                        if let presetID = presetManager.presets.first?.id {
+//                            presetManager.duplicatePreset(presetID: presetID)
+//                        }
+//                    },
+//                    .default(Text("Share")) {
+//                        print("Share selected for \(selectedPreset?.name ?? "unknown")")
+//                    },
+//                    .destructive(Text("Delete")) {
+//                        isShowingDeleteAlert = true
+//                    },
+//                    .cancel()
+//                ]
+//            )
+//        }
+        .alert(isPresented: $isShowingDeleteAlert) {
+            Alert(
+                title: Text("Are you sure you want to delete this preset?"),
+                primaryButton: .destructive(Text("Delete")) {
+                    if let presetID = selectedPreset?.id {
+                        presetManager.deletePreset(by: presetID)
+                        selectedPreset = nil
+                    }
+                },
+                secondaryButton: .cancel()
+            )
+        }
     }
 }
