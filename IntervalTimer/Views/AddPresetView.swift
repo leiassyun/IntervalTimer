@@ -17,8 +17,6 @@ struct AddPresetView: View {
     @State private var workoutMinutes = 1
     @State private var workoutSeconds = 0
     @FocusState private var isWorkoutNameFocused: Bool
-    @FocusState private var focusedIndex: Int? // Track which TextField is focused
-    
     
     
     init(selectedPreset: Preset?, presetManager: PresetManager, selectedTab: Binding<Int>) {
@@ -47,131 +45,130 @@ struct AddPresetView: View {
                 .background(appearanceManager.backgroundColor)
                 
                 Spacer().frame(height: 20)
-                
-                VStack(alignment: .leading, spacing: 5) {
-                    ForEach(workouts.indices, id: \.self) { index in
-                        HStack(spacing: 8) {
-                            Image(systemName: "clock")
-                                .foregroundColor(appearanceManager.fontColor)
-                            
-                            TextField("Session name", text: $workouts[index].name)
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(appearanceManager.fontColor)
-                                .textFieldStyle(PlainTextFieldStyle()) // No borders for TextField
-                                .padding(.vertical, 5)
-                                .background(Color.clear)
-                            
-                            Spacer()
-                            
-                            HStack(spacing: 0) {
-                                TextField(
-                                    "",
-                                    text: Binding(
-                                        get: {
-                                            String(workouts[index].duration / 60)
-                                        },
-                                        set: { newValue in
-                                            if let intValue = Int(newValue), intValue >= 0 {
-                                                let updatedWorkout = presetManager.updateWorkoutDuration(
-                                                    currentWorkout: workouts[index],
-                                                    minutes: intValue,
-                                                    seconds: workouts[index].duration % 60
-                                                )
-                                                workouts[index] = updatedWorkout
-                                            }
-                                        }
-                                    )
-                                )
-                                .keyboardType(.numberPad)
-                                .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
-                                .frame(minWidth: 30, maxWidth: 50, alignment: .trailing)
-                                .multilineTextAlignment(.trailing)
-                                .focused($focusedIndex, equals: index * 2)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 5) {
+                        ForEach(workouts.indices, id: \.self) { index in
+                            HStack(spacing: 8) {
+                                Image(systemName: "clock")
+                                    .foregroundColor(appearanceManager.fontColor)
                                 
-                                if focusedIndex == index * 2 {
-                                    Text("m:")
-                                        .foregroundColor(appearanceManager.fontColor)
-                                        .font(.system(size: 24, weight: .bold))
-                                }
-                                else{
+                                TextField("Session name", text: $workouts[index].name)
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(appearanceManager.fontColor)
+                                    .textFieldStyle(PlainTextFieldStyle())
+                                    .padding(.vertical, 5)
+                                    .background(Color.clear)
+                                
+                                Spacer()
+                                
+                                HStack(spacing: 0) {
+                                    TextField(
+                                        "",
+                                        text: Binding(
+                                            get: {
+                                                String(workouts[index].duration / 60)
+                                            },
+                                            set: { newValue in
+                                                if let intValue = Int(newValue), intValue >= 0 {
+                                                    let updatedWorkout = presetManager.updateWorkoutDuration(
+                                                        currentWorkout: workouts[index],
+                                                        minutes: intValue,
+                                                        seconds: workouts[index].duration % 60
+                                                    )
+                                                    workouts[index] = updatedWorkout
+                                                }
+                                            }
+                                        )
+                                    )
+                                    .keyboardType(.numberPad)
+                                    .foregroundColor(appearanceManager.fontColor)
+                                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                                    .frame(minWidth: 30, maxWidth: 50, alignment: .trailing)
+                                    .multilineTextAlignment(.trailing)
+                                    
                                     Text(":")
                                         .foregroundColor(appearanceManager.fontColor)
                                         .font(.system(size: 24, weight: .bold))
-                                }
-                                
-                                TextField(
-                                    "",
-                                    text: Binding(
-                                        get: {
-                                            String(format: "%02d", workouts[index].duration % 60)
-                                        },
-                                        set: { newValue in
-                                            if let intValue = Int(newValue), intValue >= 0, intValue <= 99 {
-                                                let updatedWorkout = presetManager.updateWorkoutDuration(
-                                                    currentWorkout: workouts[index],
-                                                    minutes: workouts[index].duration / 60,
-                                                    seconds: intValue
-                                                )
-                                                workouts[index] = updatedWorkout
+                                    
+                                    
+                                    TextField(
+                                        "",
+                                        text: Binding(
+                                            get: {
+                                                String(format: "%02d", workouts[index].duration % 60)
+                                            },
+                                            set: { newValue in
+                                                if let intValue = Int(newValue){
+                                                    if intValue == 0{
+                                                        let updatedWorkout = presetManager.updateWorkoutDuration(
+                                                            currentWorkout: workouts[index],
+                                                            minutes: workouts[index].duration / 60,
+                                                            seconds: 1
+                                                            )
+                                                        
+                                                    }
+                                                    
+                                                    else if intValue > 0, intValue <= 99{
+                                                        
+                                                        let updatedWorkout = presetManager.updateWorkoutDuration(
+                                                            currentWorkout: workouts[index],
+                                                            minutes: workouts[index].duration / 60,
+                                                            seconds: intValue
+                                                        )
+                                                        workouts[index] = updatedWorkout
+                                                    }
+                                                }
                                             }
-                                        }
+                                        )
                                     )
-                                )
-                                .keyboardType(.numberPad)
-                                .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
-                                .frame(width: 40, alignment: .trailing)
-                                .multilineTextAlignment(.trailing)
-                                .focused($focusedIndex, equals: index * 2)
+                                    .keyboardType(.numberPad)
+                                    .foregroundColor(appearanceManager.fontColor)
+                                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                                    .frame(width: 40, alignment: .trailing)
+                                    .multilineTextAlignment(.trailing)
+                                    
+                                }
                                 
-                                if focusedIndex == index * 2 {
-                                    Text("s")
-                                        .foregroundColor(appearanceManager.fontColor)
-                                        .font(.system(size: 24, weight: .bold))
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .background(Color.clear)
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    workouts.remove(at: index)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
                             }
-                            
                         }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                        .background(Color.clear)
-                        .swipeActions {
-                            Button(role: .destructive) {
-                                workouts.remove(at: index)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                        
+                        Button(action: {
+                            let newWorkout = Workout(name: "", duration: 1)
+                            workouts.append(newWorkout)
+                        }) {
+                            HStack {
+                                Image(systemName: "plus")
+                                    .foregroundColor(appearanceManager.fontColor)
+                                Text("Add workout")
+                                    .foregroundColor(.gray)
+                                    .font(.headline)
                             }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(10)
+                            .padding(.horizontal)
                         }
                     }
-                    
-                    Button(action: {
-                        let newWorkout = Workout(name: "", duration: 1)
-                        workouts.append(newWorkout)
-                    }) {
-                        HStack {
-                            Image(systemName: "plus")
-                                .foregroundColor(appearanceManager.fontColor)
-                            Text("Add workout")
-                                .foregroundColor(.gray)
-                                .font(.headline)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                }
+                .background(appearanceManager.backgroundColor)
+                .onAppear {
+                    if workouts.isEmpty {
+                        workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
                     }
                 }
             }
-            .background(appearanceManager.backgroundColor)
-            .onAppear {
-                if workouts.isEmpty {
-                    workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
-                }
-            }
-
             
             Spacer()
             

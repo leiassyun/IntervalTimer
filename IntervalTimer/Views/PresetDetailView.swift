@@ -5,7 +5,7 @@ struct PresetDetailView: View {
     @ObservedObject var presetManager: PresetManager
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appearanceManager: AppearanceManager
-    @State private var navigateToTimer = false 
+    @State private var navigateToTimer = false
     @State private var navigateToAddPreset = false // State variable to navigate to AddPresetView
     
     var onPlay: () -> Void
@@ -64,28 +64,29 @@ struct PresetDetailView: View {
                     .font(.largeTitle)
                     .bold()
                     .padding(.horizontal)
-                
-                // Workout Details
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(preset.workouts) { workout in
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(appearanceManager.fontColor)
-                            Text(workout.name)
-                                .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 25, weight: .bold))
-                            Spacer()
-                            Text(workout.fDuration)
-                                .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 25, weight: .bold))
+                ScrollView{
+                    // Workout Details
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(preset.workouts) { workout in
+                            HStack {
+                                Image(systemName: "clock")
+                                    .foregroundColor(appearanceManager.fontColor)
+                                Text(workout.name)
+                                    .foregroundColor(appearanceManager.fontColor)
+                                    .font(.system(size: 25, weight: .bold))
+                                Spacer()
+                                Text(workout.fDuration)
+                                    .foregroundColor(appearanceManager.fontColor)
+                                    .font(.system(size: 25, weight: .bold))
+                            }
+                            
+                            .padding(.vertical, 10)
+                            .cornerRadius(8)
                         }
-                        
-                        .padding(.vertical, 10)
-                        .cornerRadius(8)
                     }
+                    .padding(.horizontal)
+                    Spacer()
                 }
-                .padding(.horizontal)
-                Spacer()
                 
                 HStack {
                     Spacer()
