@@ -9,21 +9,23 @@ struct MainTabView: View {
             ZStack {
                 // Main TabView
                 if selectedTab != 2 { // Hide TabView when selectedTab == 2
-                                   TabView(selection: $selectedTab) {
-                                       PresetTabView(presetManager: presetManager, selectedTab: $selectedTab)
-                                           .tabItem {
-                                               Text("Preset")
-                                                   .font(.system(size: 50, weight: .bold, design: .default))
-                                           }
-                                           .tag(0)
-
-                                       SettingsView(selectedTab: $selectedTab)
-                                           .tabItem {
-                                               Text("Menu")
-                                           }
-                                           .tag(1)
-                                   }
-                               }
+                    TabView(selection: $selectedTab) {
+                        PresetTabView(presetManager: presetManager, selectedTab: $selectedTab)
+                            .tabItem {
+                                Text("Preset")
+                                    .font(.system(size: 50, weight: .bold))
+                                    .foregroundColor(selectedTab == 0 ? Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)) : Color.gray)
+                            }
+                            .tag(0)
+                        
+                        SettingsView(selectedTab: $selectedTab)
+                            .tabItem {
+                                Text("Menu")
+                                    .foregroundColor(selectedTab == 1 ? Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)) : Color.gray)
+                            }
+                            .tag(1)
+                    }
+                }
                 if selectedTab == 2 {
                     AddPresetView(
                         selectedPreset: nil,

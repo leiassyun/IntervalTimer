@@ -49,12 +49,11 @@ class AppearanceManager: ObservableObject {
 
     /// Updates the interface style for the active window.
     private func updateInterfaceStyle(_ style: UIUserInterfaceStyle) {
-        guard let window = activeWindow() else {
-            print("No active window to apply interface style.")
+        guard let window = activeWindow() else {     
             return
         }
         window.overrideUserInterfaceStyle = style
-        print("Updated interface style to \(style == .dark ? "dark" : "light").")
+    
     }
 
     /// Retrieves the active window for the app.

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct IntervalTimerView: View {
     let preset: Preset?
-
+    
     @State private var currentWorkoutIndex = 0
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appearanceManager: AppearanceManager
@@ -10,17 +10,24 @@ struct IntervalTimerView: View {
     @State private var isPlaying = false
     @State private var timer: Timer? = nil
     @State private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
-
-
+    @State private var showControlButtons = false
+    
+    
     var body: some View {
         VStack {
             HStack {
                 Button(action: {
                     goBackToPrevWorkout()
                 }) {
-                    Image(systemName: "arrow.backward.circle")
+                    Image(systemName: "backward.fill")
                         .resizable()
-                        .frame(width: 30, height: 30)
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .padding(15)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
+                        )
                         .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                 }
                 Spacer()
@@ -32,24 +39,30 @@ struct IntervalTimerView: View {
                         .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                         .padding(15)
                         .background(
-                               RoundedRectangle(cornerRadius: 15)
-                                   .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
-                           )
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
+                        )
                 }
                 Spacer()
                 Button(action: {
                     skipToNextWorkout()
                 }) {
-                    Image(systemName: "arrow.forward.circle")
+                    Image(systemName: "forward.fill")
                         .resizable()
-                        .frame(width: 30, height: 30)
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .padding(15)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
+                        )
                         .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                 }
             }
             .padding()
-
+            
             Spacer()
-
+            
             // Current Workout Name
             if let preset = preset {
                 if currentWorkoutIndex < preset.workouts.count {
@@ -70,37 +83,134 @@ struct IntervalTimerView: View {
                     .foregroundColor(.red)
                     .padding()
             }
-
+            
             // Timer Display
             Text(formatTime(remainingTime))
-                .font(.system(size: 80, weight: .bold))
+                .font(.system(size: 100, weight: .bold, design: .rounded))
                 .foregroundColor(appearanceManager.fontColor)
                 .padding()
-
-            Spacer()
-
-            // Play/Pause Button
-            Button(action: {
-                togglePlayPause()
-            }) {
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill") // Dynamically switch between play/pause
-                    .resizable() // Enable resizing
-                    .scaledToFit() // Maintain aspect ratio
-                    .frame(width: 40, height: 40) // Set the icon size
-                    .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1))) // Bright green icon
+            
+            
+            HStack{
+                Spacer()
+                VStack{
+                    if let preset = preset{
+                        if currentWorkoutIndex < preset.workouts.count{
+                            Text("\(currentWorkoutIndex + 1) of \(preset.workouts.count)")
+                                .font(.subheadline)
+                                .bold()
+                                .foregroundColor(.gray)
+                        } else {
+                            Text("\(currentWorkoutIndex) of \(preset.workouts.count)")
+                                .font(.subheadline)
+                                .bold()
+                                .foregroundColor(.gray)
+                            
+                        }
+                    }
+                    Text("Intervals")
+                        .font(.subheadline)
+                        .bold()
+                        .foregroundColor(.gray)
+                    
+                    
+                }
+                Spacer()
+                VStack{
+                    if let preset = preset {
+                        
+                        Text("\(formatTime(calculateRemainingWorkoutTime()))")
+                            .font(.subheadline)
+                            .bold()
+                            .foregroundColor(.gray)
+                        Text("Remaining")
+                            .font(.subheadline)
+                            .bold()
+                            .foregroundColor(.gray)
+                    }
+                    
+                    
+                }
+                Spacer()
             }
-            .frame(width: 80, height: 80) // Set the overall button size
-            .background(
-                Circle()
-                    .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15))) // Semi-transparent background
-            )
-
             Spacer()
+            
+            VStack{
+                if let preset = preset {
+                    if currentWorkoutIndex == preset.workouts.count && calculateRemainingWorkoutTime() == 0 {
+                        Button(action: {
+                            dismiss()
+                            
+                        }) {
+                            Text("Complete")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                                .padding()
+                                .frame(width: 110, height: 45)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                                )
+
+                                
+                        }
+                    }
+                    else if showControlButtons {
+                        VStack {
+                            Spacer()
+                            Button(action: {
+                                startWorkout()
+                                showControlButtons = false
+                                
+                            }) {
+                                Text("Resume")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                    .padding()
+                                    .frame(width: 110, height: 45)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                                    )
+
+                                    
+                            }
+                            Button(action: {
+                                restartWorkout()
+                                showControlButtons = false
+                            }) {
+                                Text("Restart")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                                    .padding()
+                            }
+                            
+                            .padding(.bottom, 40)
+                        }
+                    }
+                    else{
+                        Text("Tap anywhere to pause")
+                            .font(.subheadline)
+                            .foregroundStyle(appearanceManager.fontColor)
+                    }
+                }
+                
+                
+            }
+            .frame(height: 100)
+            .animation(.easeInOut, value: showControlButtons)
+           
+        }
+      
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showControlButtons.toggle()
+            stopTimer()
         }
         .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .tabBar)
-
+        
         .onAppear {
             startWorkout()
             setTabBarVisibility(hidden: true)
@@ -110,21 +220,29 @@ struct IntervalTimerView: View {
             setTabBarVisibility(hidden: false)
         }
     }
-        
-
+    
+    
     // MARK: - Timer Logic
-
+    private func calculateRemainingWorkoutTime() -> TimeInterval {
+        guard let preset = preset else { return 0 }
+        let remainingIntervals = preset.workouts[currentWorkoutIndex...]
+        let remainingWorkoutsTime = remainingIntervals.dropFirst().reduce(0) { $0 + Double($1.duration) }
+        return remainingTime + remainingWorkoutsTime
+    }
+    
     private func startWorkout() {
         guard let preset = preset, currentWorkoutIndex < preset.workouts.count else {
             return
         }
+        
         isPlaying = true
-
-        let currentWorkout = preset.workouts[currentWorkoutIndex]
-        remainingTime = Double(currentWorkout.duration)
-
-        startBackgroundTask() // Start background task
-
+        
+        if remainingTime == 0 {
+            let currentWorkout = preset.workouts[currentWorkoutIndex]
+            remainingTime = Double(currentWorkout.duration)
+        }
+        
+        startBackgroundTask()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             if remainingTime > 0 {
                 remainingTime -= 1
@@ -133,59 +251,64 @@ struct IntervalTimerView: View {
             }
         }
     }
-
+    private func restartWorkout() {
+        guard let preset = preset, currentWorkoutIndex < preset.workouts.count else {
+            return
+        }
+        currentWorkoutIndex = 0
+        let currentWorkout = preset.workouts[currentWorkoutIndex]
+        remainingTime = Double(currentWorkout.duration)
+        startWorkout()
+    }
+    
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
-        endBackgroundTask() // End background task
+        endBackgroundTask()
     }
-
+    
     private func togglePlayPause() {
         if isPlaying {
             stopTimer()
             
         } else {
             if timer == nil {
-                        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                            if remainingTime > 0 {
-                                remainingTime -= 1
-                            } else {
-                                moveToNextWorkout()
-                            }
-                        }
+                timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                    if remainingTime > 0 {
+                        remainingTime -= 1
+                    } else {
+                        moveToNextWorkout()
                     }
+                }
+            }
             
         }
         isPlaying.toggle()
     }
-
+    
     private func moveToNextWorkout() {
         guard let preset = preset else { return }
         currentWorkoutIndex += 1
-
         if currentWorkoutIndex < preset.workouts.count {
             remainingTime = Double(preset.workouts[currentWorkoutIndex].duration)
         } else {
-            // All workouts complete
             stopTimer()
         }
     }
     private func moveToPrevWorkout() {
         guard let preset = preset else { return }
         currentWorkoutIndex -= 1
-
         if currentWorkoutIndex < preset.workouts.count && currentWorkoutIndex > 0 {
             remainingTime = Double(preset.workouts[currentWorkoutIndex].duration)
         } else {
-            // All workouts complete
             stopTimer()
         }
     }
-
+    
     private func skipToNextWorkout() {
         guard let preset = preset, currentWorkoutIndex < preset.workouts.count - 1 else {
-               return
-           }
+            return
+        }
         stopTimer()
         moveToNextWorkout()
         // startWorkout()
@@ -194,11 +317,11 @@ struct IntervalTimerView: View {
         }
         
     }
-
+    
     private func goBackToPrevWorkout() {
         guard currentWorkoutIndex > 0 else {
-                return
-            }
+            return
+        }
         stopTimer()
         moveToPrevWorkout()
         if isPlaying {
@@ -206,12 +329,12 @@ struct IntervalTimerView: View {
         }
     }
     private func startBackgroundTask() {
-            backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "IntervalTimer") {
-                // Called when the background time is about to expire
-                endBackgroundTask()
-            }
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "IntervalTimer") {
+            // Called when the background time is about to expire
+            endBackgroundTask()
         }
-
+    }
+    
     private func endBackgroundTask() {
         if backgroundTask != .invalid {
             UIApplication.shared.endBackgroundTask(backgroundTask)
@@ -219,7 +342,7 @@ struct IntervalTimerView: View {
         }
     }
     // MARK: - Time Formatting
-
+    
     private func formatTime(_ time: TimeInterval) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60

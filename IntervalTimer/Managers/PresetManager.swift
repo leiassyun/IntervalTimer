@@ -57,8 +57,8 @@ class PresetManager: ObservableObject {
         return Workout(name: name, duration: duration)
     }
     
-    func deletePreset(at offsets: IndexSet) {
-        presets.remove(atOffsets: offsets)
+    func deletePreset(presetID: UUID) {
+        presets.removeAll { $0.id == presetID }
     }
     
     func addWorkout(to presetID: UUID, workout: Workout) {
@@ -87,11 +87,7 @@ class PresetManager: ObservableObject {
         addPreset(name: newName, workouts: presetToDuplicate.workouts)
     }
     
-    func deletePreset(by presetID: UUID) {
-        if let index = presets.firstIndex(where: { $0.id == presetID }) {
-            deletePreset(at: IndexSet(integer: index))
-        }
-    }
+
     var fTotalDuration: String {
         let totalSeconds = presets.reduce(0) { $0 + $1.totalDuration }
         let minutes = totalSeconds / 60
