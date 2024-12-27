@@ -105,7 +105,7 @@ struct AddPresetView: View {
                                                             minutes: workouts[index].duration / 60,
                                                             seconds: 1
                                                             )
-                                                        
+                                                        workouts[index] = updatedWorkout
                                                     }
                                                     
                                                     else if intValue > 0, intValue <= 99{
@@ -233,9 +233,13 @@ struct AddPresetView: View {
     //    }
     private func calculateTotalDuration() -> String {
         let totalSeconds = workouts.reduce(0) { $0 + $1.duration }
-        let minutes = totalSeconds / 60
-        let seconds = totalSeconds % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        if totalSeconds < 60 {
+            return "\(totalSeconds)s"
+        } else {
+            let minutes = totalSeconds / 60
+            let seconds = totalSeconds % 60
+            return "\(minutes)m \(String(format: "%02d", seconds))s"
+        }
     }
     private func saveChanges() {
         if let preset = selectedPreset {

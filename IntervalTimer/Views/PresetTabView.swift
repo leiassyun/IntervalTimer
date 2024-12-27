@@ -8,6 +8,7 @@ struct PresetTabView: View {
     @State private var selectedPreset: Preset?
     @State private var navigateToTimer = false
     @State private var navigateToAddPreset = false
+    @State private var navigateToShare = false
     @State private var showDetail = false
     @State private var isShowingDeleteAlert = false
     
@@ -16,7 +17,7 @@ struct PresetTabView: View {
     var body: some View {
         ZStack{
             appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all)
-            if showDetail {
+            if showDetail || navigateToShare {
                 Color(UIColor(red: 91/255, green: 76/255, blue: 113/255, alpha: 0.9))
                     .ignoresSafeArea()
                     .transition(.opacity)
@@ -193,51 +194,29 @@ struct PresetTabView: View {
                         },
                         onNavigateToAddPreset: {
                             showDetail = false
-                          navigateToAddPreset = true
+                            navigateToAddPreset = true
+                        },
+                        onNavigateToShare: {
+                            showDetail = false
+                            navigateToShare = true
                         }
                     )
                     .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
+                    .presentationDragIndicator(.hidden)
                     .transition(.opacity)
                     .animation(.easeInOut(duration: 0.3), value: showDetail)
                 }
             }
+            
+            .sheet(isPresented: $navigateToShare) {
+                ShareView()
+                    .presentationDetents([.fraction(0.38)])
+                    .presentationDragIndicator(.hidden)
+                    .transition(.move(edge: .bottom))
+                    .animation(.easeInOut(duration: 0.3), value: true)
+                
+            }
         }
-        
-        
-//        .actionSheet(isPresented: $showActionSheet) {
-//            ActionSheet(
-//                title: Text(""),
-//                buttons: [
-//                    .default(Text("Edit")) {
-//                        print("Edit selected for \(selectedPreset?.name ?? "unknown")")
-//                    },
-//                    .default(Text("Duplicate")) {
-//                        if let presetID = presetManager.presets.first?.id {
-//                            presetManager.duplicatePreset(presetID: presetID)
-//                        }
-//                    },
-//                    .default(Text("Share")) {
-//                        print("Share selected for \(selectedPreset?.name ?? "unknown")")
-//                    },
-//                    .destructive(Text("Delete")) {
-//                        isShowingDeleteAlert = true
-//                    },
-//                    .cancel()
-//                ]
-//            )
-//        }
-        .alert(isPresented: $isShowingDeleteAlert) {
-            Alert(
-                title: Text("Are you sure you want to delete this preset?"),
-                primaryButton: .destructive(Text("Delete")) {
-                    if let presetID = selectedPreset?.id {
-                        presetManager.deletePreset(by: presetID)
-                        selectedPreset = nil
-                    }
-                },
-                secondaryButton: .cancel()
-            )
-        }
+       
     }
 }
