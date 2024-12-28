@@ -71,17 +71,7 @@ struct IntervalTimerView: View {
                         .bold()
                         .foregroundColor(appearanceManager.fontColor)
                         .padding()
-                } else {
-                    Text("Workout Complete!")
-                        .font(.largeTitle)
-                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                        .padding()
-                }
-            } else {
-                Text("No Preset Selected")
-                    .font(.title)
-                    .foregroundColor(.red)
-                    .padding()
+                }          
             }
             
             // Timer Display
