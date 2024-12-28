@@ -48,16 +48,18 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Spacer().frame(height:5)
                 Image(systemName: image)
-                    .font(.title3)
+                    .font(.subheadline)
                     .foregroundColor(appearanceManager.fontColor)
+                    .padding(.trailing, 40)
                 
                 Text(title)
                     .font(.subheadline)
                     .foregroundColor(appearanceManager.fontColor)
+                    .padding(.trailing, 20)
                 Spacer()
                 
             }
-            .padding(.horizontal)
+            .padding(.horizontal,15)
             .frame(width: 110, height: 110)
             .background(
                 RoundedRectangle(cornerRadius: 12)

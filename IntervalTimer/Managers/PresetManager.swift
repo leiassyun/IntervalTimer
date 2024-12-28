@@ -1,8 +1,9 @@
 import SwiftUI
+import Foundation
 
 
-struct Workout: Identifiable {
-    let id = UUID() // Unique identifier
+struct Workout: Identifiable, Codable {
+    var id = UUID() 
     var name: String // Name of the workout
     var duration: Int // Duration in seconds
     var fDuration: String { // Computed property for formatted duration
@@ -10,14 +11,26 @@ struct Workout: Identifiable {
         let seconds = duration % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
+    
+    init(id: UUID = UUID(), name: String, duration: TimeInterval) {
+            self.id = id
+            self.name = name
+            self.duration = Int(duration)
+        }
 }
 
 
-struct Preset: Identifiable {
-    let id = UUID()
+struct Preset: Identifiable, Codable {
+    var id = UUID()
     var name: String
     var workouts: [Workout]
     var totalDuration: Int
+    init(id: UUID = UUID(), name: String, workouts: [Workout], totalDuration: TimeInterval) {
+           self.id = id
+           self.name = name
+           self.workouts = workouts
+           self.totalDuration = Int(totalDuration)
+       }
     
     // Formatted total duration in MM:SS format
     var fTotalDuration: String {
@@ -34,15 +47,43 @@ struct Preset: Identifiable {
 }
 
 class PresetManager: ObservableObject {
-    @Published var presets: [Preset] = []
+    @Published var presets: [Preset] = [] {
+        didSet {
+            savePresets()
+        }
+    }
+    private let presetsKey = "savedPresets"
+    init() {
+        loadPresets()
+    }
+    func savePresets() {
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(presets)
+            UserDefaults.standard.set(data, forKey: presetsKey)
+        } catch {
+            print("Failed to save presets: \(error)")
+        }
+    }
+    
+    
+    func loadPresets() {
+        guard let data = UserDefaults.standard.data(forKey: presetsKey) else { return }
+        do {
+            let decoder = JSONDecoder()
+            presets = try decoder.decode([Preset].self, from: data)
+        } catch {
+            print("Failed to load presets: \(error)")
+        }
+    }
     
     func addPreset(name: String, workouts: [Workout]) {
-        let totalDuration = workouts.reduce(0) { $0 + $1.duration }
+        let totalDuration = Double(workouts.reduce(0) { $0 + $1.duration })
         let newPreset = Preset(name: name, workouts: workouts, totalDuration: totalDuration)
         presets.append(newPreset)
     }
     func updateWorkoutDuration(currentWorkout: Workout, minutes: Int, seconds: Int) -> Workout {
-        let totalSeconds = min((minutes * 60) + seconds, 99 * 60 + 59)
+        let totalSeconds = Double(min((minutes * 60) + seconds, 99 * 60 + 59))
         return Workout(name: currentWorkout.name, duration: totalSeconds)
     }
     func updatePreset(preset: Preset, workouts: [Workout], name: String) {
@@ -53,7 +94,7 @@ class PresetManager: ObservableObject {
         }
     }
     
-    func createWorkout(name: String, duration: Int) -> Workout {
+    func createWorkout(name: String, duration: Double) -> Workout {
         return Workout(name: name, duration: duration)
     }
     
@@ -87,7 +128,7 @@ class PresetManager: ObservableObject {
         addPreset(name: newName, workouts: presetToDuplicate.workouts)
     }
     
-
+    
     var fTotalDuration: String {
         let totalSeconds = presets.reduce(0) { $0 + $1.totalDuration }
         let minutes = totalSeconds / 60

@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct IntervalTimerApp: App {
     @StateObject private var appearanceManager = AppearanceManager()
+    @StateObject private var presetManager = PresetManager()
     
     init() {
         let appearance = UITabBarAppearance()
@@ -23,6 +24,7 @@ struct IntervalTimerApp: App {
         WindowGroup {
             MainTabView()
                 .environmentObject(appearanceManager)
+                .environmentObject(presetManager)
                 .preferredColorScheme(appearanceManager.isDarkMode ? .dark : .light)
         }
     }
