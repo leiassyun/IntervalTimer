@@ -1,4 +1,6 @@
 import SwiftUI
+import AVFoundation
+
 
 struct IntervalTimerView: View {
     let preset: Preset?
@@ -11,6 +13,9 @@ struct IntervalTimerView: View {
     @State private var timer: Timer? = nil
     @State private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
     @State private var showControlButtons = false
+    @State private var audioPlayer: AVAudioPlayer?
+    
+    
     
     
     var body: some View {
@@ -64,14 +69,21 @@ struct IntervalTimerView: View {
             Spacer()
             
             // Current Workout Name
-            if let preset = preset {
-                if currentWorkoutIndex < preset.workouts.count {
+            if let preset = preset, !preset.workouts.isEmpty {
+                if currentWorkoutIndex >= 0, currentWorkoutIndex < preset.workouts.count {
+                    // Show current workout name
                     Text(preset.workouts[currentWorkoutIndex].name)
                         .font(.title)
                         .bold()
                         .foregroundColor(appearanceManager.fontColor)
                         .padding()
-                }          
+                } else {
+                    Text(preset.workouts.last?.name ?? "No workouts available")
+                        .font(.title)
+                        .bold()
+                        .foregroundColor(appearanceManager.fontColor)
+                        .padding()
+                }
             }
             
             // Timer Display
@@ -125,12 +137,13 @@ struct IntervalTimerView: View {
             }
             Spacer()
             
+            
             VStack{
                 if let preset = preset {
                     if currentWorkoutIndex == preset.workouts.count && calculateRemainingWorkoutTime() == 0 {
+                        
                         Button(action: {
                             dismiss()
-                            
                         }) {
                             Text("Complete")
                                 .font(.headline)
@@ -141,9 +154,10 @@ struct IntervalTimerView: View {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                                 )
-
-                                
+                            
+                            
                         }
+                        
                     }
                     else if showControlButtons {
                         VStack {
@@ -162,8 +176,8 @@ struct IntervalTimerView: View {
                                         RoundedRectangle(cornerRadius: 8)
                                             .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                                     )
-
-                                    
+                                
+                                
                             }
                             Button(action: {
                                 restartWorkout()
@@ -189,9 +203,9 @@ struct IntervalTimerView: View {
             }
             .frame(height: 100)
             .animation(.easeInOut, value: showControlButtons)
-           
+            
         }
-      
+        
         .contentShape(Rectangle())
         .onTapGesture {
             showControlButtons.toggle()
@@ -207,9 +221,12 @@ struct IntervalTimerView: View {
         }
         .onDisappear {
             stopTimer()
+            stopSound()
             setTabBarVisibility(hidden: false)
         }
+        
     }
+    
     
     
     // MARK: - Timer Logic
@@ -283,6 +300,7 @@ struct IntervalTimerView: View {
             remainingTime = Double(preset.workouts[currentWorkoutIndex].duration)
         } else {
             stopTimer()
+            playSound()
         }
     }
     private func moveToPrevWorkout() {
@@ -342,5 +360,21 @@ struct IntervalTimerView: View {
         if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
             tabBarController.tabBar.isHidden = hidden
         }
+    }
+    // MARK: - Alarm
+    private func playSound() {
+        guard let url = Bundle.main.url(forResource: "timerComplete", withExtension: "mp3") else {
+            return }
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
+            
+        } catch {
+            print("Error playing sound: \(error)")
+        }
+    }
+    private func stopSound() {
+        audioPlayer?.stop()
+        audioPlayer = nil
     }
 }
