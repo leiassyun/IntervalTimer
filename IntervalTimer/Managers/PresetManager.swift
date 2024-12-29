@@ -76,7 +76,13 @@ class PresetManager: ObservableObject {
             print("Failed to load presets: \(error)")
         }
     }
-    
+    func addPresetP(newPreset: Preset) {
+        presets.append(newPreset)
+        savePresets()
+        objectWillChange.send()
+        print("PresetManager: Preset added to list.")
+
+    }
     func addPreset(name: String, workouts: [Workout]) {
         let totalDuration = Double(workouts.reduce(0) { $0 + $1.duration })
         let newPreset = Preset(name: name, workouts: workouts, totalDuration: totalDuration)
@@ -98,9 +104,15 @@ class PresetManager: ObservableObject {
         return Workout(name: name, duration: duration)
     }
     
-    func deletePreset(presetID: UUID) {
-        presets.removeAll { $0.id == presetID }
+    func deleteWorkout(fromPresetID presetID: UUID, workoutID: UUID) {
+        guard let presetIndex = presets.firstIndex(where: { $0.id == presetID }) else { return }
+        guard let workoutIndex = presets[presetIndex].workouts.firstIndex(where: { $0.id == workoutID }) else { return }
+        presets[presetIndex].workouts.remove(at: workoutIndex)
     }
+    func deletePreset(presetID: UUID) {
+           guard let index = presets.firstIndex(where: { $0.id == presetID }) else { return }
+           presets.remove(at: index)
+       }
     
     func addWorkout(to presetID: UUID, workout: Workout) {
         if let index = presets.firstIndex(where: { $0.id == presetID }) {
@@ -134,5 +146,15 @@ class PresetManager: ObservableObject {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+extension Preset {
+    func toJSON() -> String? {
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(self) {
+            return String(data: data, encoding: .utf8)
+        }
+        return nil
     }
 }

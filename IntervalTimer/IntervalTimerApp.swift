@@ -1,23 +1,24 @@
 import SwiftUI
+import UIKit
 
 @main
 struct IntervalTimerApp: App {
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var presetManager = PresetManager()
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
         let appearance = UITabBarAppearance()
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 18, weight: .medium)
-            
         ]
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 18, weight: .bold),
             .foregroundColor: UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)
-
         ]
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
+        
     }
     
     var body: some Scene {
@@ -25,7 +26,11 @@ struct IntervalTimerApp: App {
             MainTabView()
                 .environmentObject(appearanceManager)
                 .environmentObject(presetManager)
+                .environmentObject(appDelegate)
                 .preferredColorScheme(appearanceManager.isDarkMode ? .dark : .light)
+                .onAppear {
+                    appDelegate.presetManager = presetManager
+                }
         }
     }
 }

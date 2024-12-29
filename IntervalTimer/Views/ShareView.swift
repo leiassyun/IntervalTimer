@@ -1,8 +1,14 @@
 import SwiftUI
 
 struct ShareView: View {
+    let preset: Preset
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appearanceManager: AppearanceManager
+    @EnvironmentObject var presetManager: PresetManager
+    @State private var shareURL: URL?
+
+    
+    
     
     var body: some View {
         VStack(spacing: 20) {
@@ -38,26 +44,39 @@ struct ShareView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             Spacer()
-            Button(action: {
-                print("Share action triggered")
-            }) {
-                HStack {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Share")
-                        .bold()
+          
+            if let shareURL = shareURL {
+                ShareLink(
+                    item: shareURL,
+                    subject: Text("Check out my workout preset!"),
+                    message: Text("I've been using this great workout preset for my intervals. Try it out!")
+                ) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share")
+                            .bold()
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                    .foregroundColor(.black)
+                    .cornerRadius(10)
                 }
                 .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                .foregroundColor(.black)
-                .cornerRadius(10)
+            } else {
+                Text("Unable to generate a shareable URL.")
+                    .foregroundColor(.red)
+                    .padding()
             }
-            .padding(.horizontal)
             
             Spacer()
         }
         .padding()
         .background(appearanceManager.backgroundColor)
         .edgesIgnoringSafeArea(.bottom)
+        .onAppear {
+                   shareURL = ShareManager.generateShareURL(for: preset)
+               }
     }
+    
 }
