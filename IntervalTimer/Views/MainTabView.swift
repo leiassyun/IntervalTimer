@@ -1,16 +1,15 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @StateObject private var presetManager = PresetManager()
+    @EnvironmentObject private var presetManager : PresetManager
     @State private var selectedTab = 0
     
     var body: some View {
         NavigationView {
             ZStack {
-                // Main TabView
-                if selectedTab != 2 { // Hide TabView when selectedTab == 2
+                if selectedTab != 2 {
                     TabView(selection: $selectedTab) {
-                        PresetTabView(presetManager: presetManager, selectedTab: $selectedTab)
+                        PresetTabView(selectedTab: $selectedTab)
                             .tabItem {
                                 Text("Preset")
                                     .font(.system(size: 50, weight: .bold))
@@ -42,7 +41,9 @@ struct MainTabView: View {
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
+        
         MainTabView()
             .environmentObject(AppearanceManager())
+            .environmentObject(PresetManager())     
     }
 }

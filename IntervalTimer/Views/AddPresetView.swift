@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AddPresetView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
-    @ObservedObject var presetManager: PresetManager
+    @EnvironmentObject var presetManager: PresetManager
     @Binding var selectedTab: Int
     @State private var selectedPreset: Preset?
     @State private var isOverlayVisible = false
@@ -23,7 +23,7 @@ struct AddPresetView: View {
         _presetName = State(initialValue: selectedPreset?.name ?? "")
         _workouts = State(initialValue: selectedPreset?.workouts ?? [])
         self.selectedPreset = selectedPreset // Use this variable
-        _presetManager = ObservedObject(wrappedValue: presetManager)
+        //_presetManager = ObservedObject(wrappedValue: presetManager)
         _selectedTab = selectedTab
     }
     var body: some View {
