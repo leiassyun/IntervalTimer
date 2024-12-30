@@ -47,6 +47,7 @@ struct Preset: Identifiable, Codable {
 }
 
 class PresetManager: ObservableObject {
+    @Published var quickStartWorkouts: [Workout] = []
     @Published var presets: [Preset] = [] {
         didSet {
             savePresets()
@@ -66,6 +67,25 @@ class PresetManager: ObservableObject {
         }
     }
     
+    
+    func createQuickStartPreset(sets: Int, workoutDuration: TimeInterval, restDuration: TimeInterval) -> Preset {
+        var workouts: [Workout] = []
+
+           if sets == 1 {
+               workouts.append(createWorkout(name: "Workout", duration: Double(workoutDuration)))
+           } else {
+               workouts = (1...sets).flatMap { _ in
+                   [
+                       createWorkout(name: "Workout", duration: Double(workoutDuration)),
+                       createWorkout(name: "Rest", duration: Double(restDuration))
+                   ]
+               }
+           }
+        let totalDuration = workouts.reduce(0) { $0 + $1.duration }
+        
+        let preset = Preset(name: "Quick Start", workouts: workouts, totalDuration: Double(totalDuration))
+        return preset
+    }
     
     func loadPresets() {
         guard let data = UserDefaults.standard.data(forKey: presetsKey) else { return }
@@ -156,5 +176,28 @@ extension Preset {
             return String(data: data, encoding: .utf8)
         }
         return nil
+    }
+}
+extension TimeInterval {
+    var minutes: Int {
+        get { Int(self) / 60 }
+        set {
+            // Recalculate the total seconds when minutes are updated
+            self = Double(newValue * 60 + seconds)
+        }
+    }
+
+    var seconds: Int {
+        get { Int(self) % 60 }
+        set {
+            // Ensure seconds roll over to minutes if they exceed 59
+            let total = (minutes * 60) + newValue
+            self = Double(total)
+        }
+    }
+
+    var formatted: String {
+        // Return the time in "MM:SS" format
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 }
