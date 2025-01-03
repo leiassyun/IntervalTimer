@@ -48,12 +48,11 @@ struct AddPresetView: View {
     @State private var selectedWorkoutIndex: Int?
     @State private var showingDiscardAlert = false
     
-    // States for tracking changes
     @State private var initialPresetName: String
     @State private var initialWorkouts: [Workout]
     @State private var presetName = ""
     @State private var workouts: [Workout] = []
-    
+    @FocusState private var focusedWorkoutIndex: Int?
     @Environment(\.dismiss) var dismiss
     
     init(selectedPreset: Preset?, presetManager: PresetManager, selectedTab: Binding<Int>) {
@@ -67,9 +66,9 @@ struct AddPresetView: View {
     
     private var hasDefaultState: Bool {
         return workouts.count == 1 &&
-               workouts[0].name == "Starts in..." &&
-               workouts[0].duration == 5 &&
-               presetName.isEmpty
+        workouts[0].name == "Starts in..." &&
+        workouts[0].duration == 5 &&
+        presetName.isEmpty
     }
     
     private var hasUnsavedChanges: Bool {
@@ -88,7 +87,7 @@ struct AddPresetView: View {
         for (index, initialWorkout) in initialWorkouts.enumerated() {
             let currentWorkout = workouts[index]
             if initialWorkout.name != currentWorkout.name ||
-               initialWorkout.duration != currentWorkout.duration {
+                initialWorkout.duration != currentWorkout.duration {
                 return true
             }
         }
@@ -107,129 +106,65 @@ struct AddPresetView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                VStack(spacing: 0) {
-                    HStack {
-                        Text("New Preset")
-                            .font(.system(.title2, weight: .bold))
-                            .foregroundColor(appearanceManager.fontColor)
-                        Spacer()
-                        Text("Total: \(calculateTotalDuration())")
-                            .font(.system(.headline, weight: .bold))
-                            .foregroundColor(appearanceManager.fontColor)
-                    }
-                    .padding(.horizontal)
-                    .padding(.top)
-                    .background(appearanceManager.backgroundColor)
-                    
-                    Spacer().frame(height: 20)
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 5) {
-                            ForEach(workouts.indices, id: \.self) { index in
-                                HStack(spacing: 8) {
-                                    Image(systemName: "clock")
-                                        .foregroundColor(appearanceManager.fontColor)
-                                    
-                                    TextField("Session name", text: $workouts[index].name)
-                                        .font(.system(.title3, weight: .semibold))
-                                        .foregroundColor(appearanceManager.fontColor)
-                                        .textFieldStyle(PlainTextFieldStyle())
-                                        .padding(.vertical, 5)
-                                        .background(Color.clear)
-                                    
-                                    Spacer()
-                                    
-                                    Button(action: {
-                                        selectedWorkoutIndex = index
-                                        showingTimePicker = true
-                                    }) {
-                                        Text(formatDuration(workouts[index].duration))
-                                            .foregroundColor(appearanceManager.fontColor)
-                                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                                            .padding(.horizontal)
-                                    }
-                                }
-                                .padding(.vertical, 10)
-                                .padding(.horizontal)
-                                .frame(maxWidth: .infinity, alignment: .trailing)
-                                .background(Color.clear)
-                                .swipeActions {
-                                    Button(role: .destructive) {
-                                        workouts.remove(at: index)
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
+            VStack(spacing: 0) {
+                PresetHeaderView(totalDuration: calculateTotalDuration())
+                
+                Spacer().frame(height: 20)
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 5) {
+                        ForEach(workouts.indices, id: \.self) { index in
+                            WorkoutRowView(
+                                index: index,
+                                workout: $workouts[index],
+                                showingTimePicker: $showingTimePicker,
+                                selectedWorkoutIndex: $selectedWorkoutIndex,
+                                focusedWorkoutIndex: $focusedWorkoutIndex
+                            )
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    workouts.remove(at: index)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
                                 }
                             }
-                            
-                            Button(action: {
-                                let newWorkout = Workout(name: "", duration: 1)
-                                workouts.append(newWorkout)
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus")
-                                        .foregroundColor(appearanceManager.fontColor)
-                                    Text("Add workout")
-                                        .foregroundColor(.gray)
-                                        .font(.headline)
-                                }
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(10)
-                                .padding(.horizontal)
+                        }
+                        
+                        Button(action: {
+                            let newWorkout = Workout(name: "", duration: 1)
+                            workouts.append(newWorkout)
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                focusedWorkoutIndex = workouts.count - 1
                             }
+                        }) {
+                            HStack {
+                                Image(systemName: "plus")
+                                    .foregroundColor(appearanceManager.fontColor)
+                                Text("Add workout")
+                                    .foregroundColor(.gray)
+                                    .font(.headline)
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(10)
+                            .padding(.horizontal)
                         }
                     }
-                    .background(appearanceManager.backgroundColor)
-                    .onAppear {
-                        if workouts.isEmpty {
-                            workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
-                        }
+                }
+                .background(appearanceManager.backgroundColor)
+                .onAppear {
+                    if workouts.isEmpty {
+                        workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
                     }
                 }
                 
                 Spacer()
                 
-                HStack {
-                    ZStack(alignment: .leading) {
-                        if presetName.isEmpty {
-                            Text("Name")
-                                .foregroundColor(.gray)
-                                .bold()
-                                .padding(.leading, 10)
-                        }
-                        TextField("", text: $presetName)
-                            .font(.largeTitle)
-                            .bold()
-                            .foregroundColor(appearanceManager.fontColor)
-                            .padding(.leading, 10)
-                    }
-                    .frame(height: 50)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        saveChanges()
-                        selectedTab = 0
-                    }) {
-                        HStack {
-                            Image(systemName: "checkmark")
-                            Text("Save")
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .foregroundColor(presetName.isEmpty ? .gray : .black)
-                        .background(presetName.isEmpty ? Color.gray.opacity(0.6) : Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                        .cornerRadius(8)
-                    }
-                    .disabled(presetName.isEmpty)
+                PresetBottomBarView(presetName: $presetName) {
+                    saveChanges()
+                    selectedTab = 0
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(10)
-                .padding(.horizontal)
             }
             .sheet(isPresented: $showingTimePicker) {
                 if let index = selectedWorkoutIndex {
@@ -284,12 +219,6 @@ struct AddPresetView: View {
         .navigationBarBackButtonHidden(true)
     }
     
-    private func formatDuration(_ duration: Int) -> String {
-        let minutes = duration / 60
-        let seconds = duration % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-    
     private func calculateTotalDuration() -> String {
         let totalSeconds = workouts.reduce(0) { $0 + $1.duration }
         if totalSeconds < 60 {
@@ -311,11 +240,10 @@ struct AddPresetView: View {
     }
 }
 
-// Make Workout conform to Equatable
 extension Workout: Equatable {
     static func == (lhs: Workout, rhs: Workout) -> Bool {
         return lhs.id == rhs.id &&
-               lhs.name == rhs.name &&
-               lhs.duration == rhs.duration
+        lhs.name == rhs.name &&
+        lhs.duration == rhs.duration
     }
 }
