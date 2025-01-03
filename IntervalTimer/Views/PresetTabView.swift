@@ -42,8 +42,7 @@ struct PresetTabView: View {
                 // Title Bar
                 HStack {
                     Text("Preset")
-                        .font(.title)
-                        .bold()
+                        .font(.system(.title, weight: .bold))
                         .foregroundColor(appearanceManager.fontColor)
                     Spacer()
                     Button(action: {
@@ -64,7 +63,7 @@ struct PresetTabView: View {
                 
                 HStack {
                     Text("Quick start")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.system(.title2, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
                     Image(systemName: quickStartExpanded ? "chevron.down" : "chevron.up")
@@ -86,7 +85,7 @@ struct PresetTabView: View {
                       
                         HStack {
                             Text("Sets")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(.title3, weight: .semibold))
                                 .foregroundColor(appearanceManager.fontColor)
                             Spacer()
                             TextField("", value: $sets, formatter: NumberFormatter())
@@ -108,7 +107,7 @@ struct PresetTabView: View {
                                 .foregroundColor(appearanceManager.fontColor)
                             Text("Work")
                                 .foregroundColor(appearanceManager.fontColor)
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(.title3, weight: .semibold))
                             Spacer()
                             HStack (spacing: 0){
                                 TextField(
@@ -244,7 +243,7 @@ struct PresetTabView: View {
                                 // Preset Info: Name and Duration
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(preset.name)
-                                        .font(.system(size: 20, weight: .bold))
+                                        .font(.system(.title2, weight: .bold))
                                         .foregroundColor(appearanceManager.fontColor)
                                     
                                     HStack {
@@ -268,7 +267,7 @@ struct PresetTabView: View {
                                                     .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                                                 Text("Play")
                                                     .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                                                    .font(.system(size: 16, weight: .semibold))
+                                                    .font(.system(.callout, weight: .semibold))
                                             }
                                             .frame(width: 280, height: 50)
                                             .background(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))

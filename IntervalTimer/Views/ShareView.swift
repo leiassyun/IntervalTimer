@@ -30,8 +30,7 @@ struct ShareView: View {
                 
                 // Title centered
                 Text("Share")
-                    .font(.headline)
-                    .bold()
+                    .font(.system(.title2, weight: .bold))
                     .foregroundColor(.white)
             }
             .padding(.horizontal)
@@ -39,7 +38,7 @@ struct ShareView: View {
             
             Spacer()
             Text("Anyone with this link will be able to view the preset")
-                .font(.body)
+                .font(.system(.body))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)

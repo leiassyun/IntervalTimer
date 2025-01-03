@@ -8,8 +8,7 @@ struct SettingsView: View {
         VStack (alignment: .leading) {
             
             Text("Settings")
-                .font(.title)
-                .bold()
+                .font(.system(.title, weight: .bold))
                 .foregroundColor(appearanceManager.fontColor)
                 .padding(.top)
                 .padding(.horizontal)
@@ -19,8 +18,7 @@ struct SettingsView: View {
             Spacer().frame(height:30)
             
             Text("Appearances")
-                .font(.title2)
-                .bold()
+                .font(.system(.title2, weight: .bold))
                 .foregroundColor(appearanceManager.fontColor)
                 .padding(.horizontal)
             
@@ -48,12 +46,12 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Spacer().frame(height:5)
                 Image(systemName: image)
-                    .font(.subheadline)
+                    .font(.system(.subheadline))
                     .foregroundColor(appearanceManager.fontColor)
                     .padding(.trailing, 40)
                 
                 Text(title)
-                    .font(.subheadline)
+                    .font(.system(.subheadline))
                     .foregroundColor(appearanceManager.fontColor)
                     .padding(.trailing, 20)
                 Spacer()

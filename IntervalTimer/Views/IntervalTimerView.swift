@@ -73,14 +73,12 @@ struct IntervalTimerView: View {
                 if currentWorkoutIndex >= 0, currentWorkoutIndex < preset.workouts.count {
                     // Show current workout name
                     Text(preset.workouts[currentWorkoutIndex].name)
-                        .font(.title)
-                        .bold()
+                        .font(.system(.title, weight: .bold))
                         .foregroundColor(appearanceManager.fontColor)
                         .padding()
                 } else {
                     Text(preset.workouts.last?.name ?? "No workouts available")
-                        .font(.title)
-                        .bold()
+                        .font(.system(.title, weight: .bold))
                         .foregroundColor(appearanceManager.fontColor)
                         .padding()
                 }
@@ -88,7 +86,8 @@ struct IntervalTimerView: View {
             
             // Timer Display
             Text(formatTime(remainingTime))
-                .font(.system(size: 100, weight: .bold, design: .rounded))
+                .font(.system(size: 100, weight: .bold, design: .rounded)) // [TODO] how to make it dynamic type?
+                .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                 .foregroundColor(appearanceManager.fontColor)
                 .padding()
             
@@ -99,20 +98,17 @@ struct IntervalTimerView: View {
                     if let preset = preset{
                         if currentWorkoutIndex < preset.workouts.count{
                             Text("\(currentWorkoutIndex + 1) of \(preset.workouts.count)")
-                                .font(.subheadline)
-                                .bold()
+                                .font(.system(.title3, weight: .bold))
                                 .foregroundColor(.gray)
                         } else {
                             Text("\(currentWorkoutIndex) of \(preset.workouts.count)")
-                                .font(.subheadline)
-                                .bold()
+                                .font(.system(.title3, weight: .bold))
                                 .foregroundColor(.gray)
                             
                         }
                     }
                     Text("Intervals")
-                        .font(.subheadline)
-                        .bold()
+                        .font(.system(.title3, weight: .bold))
                         .foregroundColor(.gray)
                     
                     
@@ -122,12 +118,10 @@ struct IntervalTimerView: View {
                     if let preset = preset {
                         
                         Text("\(formatTime(calculateRemainingWorkoutTime()))")
-                            .font(.subheadline)
-                            .bold()
+                            .font(.system(.title3, weight: .bold))
                             .foregroundColor(.gray)
                         Text("Remaining")
-                            .font(.subheadline)
-                            .bold()
+                            .font(.system(.title3, weight: .bold))
                             .foregroundColor(.gray)
                     }
                     

@@ -77,8 +77,7 @@ struct PresetDetailView: View {
                 // Preset Title
                 Text(preset.name)
                     .foregroundColor(appearanceManager.fontColor)
-                    .font(.largeTitle)
-                    .bold()
+                    .font(.system(.title2, weight: .bold))
                     .padding(.horizontal)
                 ScrollView{
                     // Workout Details
@@ -89,11 +88,11 @@ struct PresetDetailView: View {
                                     .foregroundColor(appearanceManager.fontColor)
                                 Text(workout.name)
                                     .foregroundColor(appearanceManager.fontColor)
-                                    .font(.system(size: 25, weight: .bold))
+                                    .font(.system(.title3, weight: .semibold))
                                 Spacer()
                                 Text(workout.fDuration)
                                     .foregroundColor(appearanceManager.fontColor)
-                                    .font(.system(size: 25, weight: .bold))
+                                    .font(.system(size: 30, weight: .bold, design: .rounded))
                             }
                             
                             .padding(.vertical, 10)

@@ -31,13 +31,11 @@ struct AddPresetView: View {
             VStack(spacing: 0) {
                 HStack {
                     Text("New Preset")
-                        .font(.title)
-                        .bold()
+                        .font(.system(.title2, weight: .bold))
                         .foregroundColor(appearanceManager.fontColor)
                     Spacer()
                     Text("Total: \(calculateTotalDuration())")
-                        .font(.headline)
-                        .bold()
+                        .font(.system(.headline, weight: .bold))
                         .foregroundColor(appearanceManager.fontColor)
                 }
                 .padding(.horizontal)
@@ -53,7 +51,7 @@ struct AddPresetView: View {
                                     .foregroundColor(appearanceManager.fontColor)
                                 
                                 TextField("Session name", text: $workouts[index].name)
-                                    .font(.system(size: 24, weight: .bold))
+                                    .font(.system(.title3, weight: .semibold))
                                     .foregroundColor(appearanceManager.fontColor)
                                     .textFieldStyle(PlainTextFieldStyle())
                                     .padding(.vertical, 5)
