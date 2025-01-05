@@ -39,6 +39,78 @@ struct TimePickerView: View {
     }
 }
 
+private struct WorkoutListView: View {
+    @Binding var workouts: [Workout]
+    @Binding var showingTimePicker: Bool
+    @Binding var selectedWorkoutIndex: Int?
+    @FocusState.Binding var focusedWorkoutIndex: Int?
+    @EnvironmentObject var appearanceManager: AppearanceManager
+    
+    var body: some View {
+        List {
+            ForEach(Array(workouts.enumerated()), id: \.element.id) { index, _ in
+                WorkoutRowView(
+                    index: index,
+                    workout: $workouts[index],
+                    showingTimePicker: $showingTimePicker,
+                    selectedWorkoutIndex: $selectedWorkoutIndex,
+                    focusedWorkoutIndex: $focusedWorkoutIndex
+                )
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        withAnimation {
+                            guard index < workouts.count else { return }
+                            workouts.remove(at: index)
+                        }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    .tint(.red)
+                }
+            }
+            .onMove { source, destination in
+                withAnimation(.default.speed(2.0)) {
+                    workouts.move(fromOffsets: source, toOffset: destination)
+                }
+            }
+        }
+        .listStyle(.plain)
+        .environment(\.editMode, .constant(.active))
+    }
+}
+
+private struct AddWorkoutButton: View {
+    @Binding var workouts: [Workout]
+    @FocusState.Binding var focusedWorkoutIndex: Int?
+    @EnvironmentObject var appearanceManager: AppearanceManager
+    
+    var body: some View {
+        Button(action: {
+            let newWorkout = Workout(name: "", duration: 60)
+            workouts.append(newWorkout)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                focusedWorkoutIndex = workouts.count - 1
+            }
+        }) {
+            HStack {
+                Image(systemName: "plus")
+                    .foregroundColor(appearanceManager.fontColor)
+                Text("Add workout")
+                    .foregroundColor(.gray)
+                    .font(.headline)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.gray.opacity(0.2))
+            .cornerRadius(10)
+            .padding(.horizontal)
+        }
+    }
+}
+
 struct AddPresetView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var presetManager: PresetManager
@@ -67,7 +139,7 @@ struct AddPresetView: View {
     private var hasDefaultState: Bool {
         return workouts.count == 1 &&
         workouts[0].name == "Starts in..." &&
-        workouts[0].duration == 5 &&
+        workouts[0].duration == 60 &&
         presetName.isEmpty
     }
     
@@ -111,59 +183,34 @@ struct AddPresetView: View {
                 
                 Spacer().frame(height: 20)
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 5) {
-                        ForEach(workouts.indices, id: \.self) { index in
-                            WorkoutRowView(
-                                index: index,
-                                workout: $workouts[index],
-                                showingTimePicker: $showingTimePicker,
-                                selectedWorkoutIndex: $selectedWorkoutIndex,
-                                focusedWorkoutIndex: $focusedWorkoutIndex
-                            )
-                            .swipeActions {
-                                Button(role: .destructive) {
-                                    workouts.remove(at: index)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                        
-                        Button(action: {
-                            let newWorkout = Workout(name: "", duration: 1)
-                            workouts.append(newWorkout)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                focusedWorkoutIndex = workouts.count - 1
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "plus")
-                                    .foregroundColor(appearanceManager.fontColor)
-                                Text("Add workout")
-                                    .foregroundColor(.gray)
-                                    .font(.headline)
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-                        }
-                    }
+                VStack(spacing: 0) {
+                    WorkoutListView(
+                        workouts: $workouts,
+                        showingTimePicker: $showingTimePicker,
+                        selectedWorkoutIndex: $selectedWorkoutIndex,
+                        focusedWorkoutIndex: $focusedWorkoutIndex
+                    )
+                    
+                    AddWorkoutButton(
+                        workouts: $workouts,
+                        focusedWorkoutIndex: $focusedWorkoutIndex
+                    )
+                    .padding(.top, 5)
+                    .padding(.bottom, 10)
                 }
                 .background(appearanceManager.backgroundColor)
-                .onAppear {
-                    if workouts.isEmpty {
-                        workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
-                    }
-                }
                 
                 Spacer()
                 
                 PresetBottomBarView(presetName: $presetName) {
                     saveChanges()
                     selectedTab = 0
+                }
+            }
+            .background(appearanceManager.backgroundColor)
+            .onAppear {
+                if workouts.isEmpty {
+                    workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 60))
                 }
             }
             .sheet(isPresented: $showingTimePicker) {
@@ -199,10 +246,12 @@ struct AddPresetView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: handleBack) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                        Text("Back")
-                            .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                        HStack {
+                            Image(systemName: "chevron.left")
+                                .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                            Text("Back")
+                                .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                        }
                     }
                 }
             }
@@ -239,6 +288,7 @@ struct AddPresetView: View {
         dismiss()
     }
 }
+
 
 extension Workout: Equatable {
     static func == (lhs: Workout, rhs: Workout) -> Bool {

@@ -120,7 +120,7 @@ class PresetManager: ObservableObject {
         }
     }
     
-    func createWorkout(name: String, duration: Double) -> Workout {
+    func createWorkout(name: String, duration: Double = 60) -> Workout {
         return Workout(name: name, duration: duration)
     }
     

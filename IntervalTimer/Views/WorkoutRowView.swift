@@ -10,17 +10,20 @@ struct WorkoutRowView: View {
     @FocusState.Binding var focusedWorkoutIndex: Int?
     
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "clock")
-                .foregroundColor(appearanceManager.fontColor)
+        HStack(spacing: 12) {
+            Image(systemName: "line.3.horizontal")
+                .foregroundColor(.gray)
+                .frame(width: 20)
+                .padding(.leading, 16)
+                .contentShape(Rectangle())
             
             TextField("Session name", text: $workout.name)
                 .font(.system(.title3, weight: .semibold))
                 .foregroundColor(appearanceManager.fontColor)
                 .textFieldStyle(PlainTextFieldStyle())
                 .padding(.vertical, 5)
-                .background(Color.clear)
                 .focused($focusedWorkoutIndex, equals: index)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
             Spacer()
             
@@ -34,9 +37,8 @@ struct WorkoutRowView: View {
                     .padding(.horizontal)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 10)
-        .padding(.horizontal)
-        .frame(maxWidth: .infinity, alignment: .trailing)
         .background(Color.clear)
     }
     

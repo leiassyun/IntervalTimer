@@ -14,7 +14,7 @@ class TimerManager: ObservableObject {
     var workouts: [Workout] = []
     var onWorkoutComplete: (() -> Void)?
     var onTimerTick: ((TimeInterval) -> Void)?
-    
+
     func startTimer() async {
         guard !isRunning else { return }
         isRunning = true
@@ -25,8 +25,11 @@ class TimerManager: ObservableObject {
                 if remainingTime > 0 {
                     remainingTime -= 1
                     onTimerTick?(remainingTime)
-                } else {
-                    await moveToNextWorkout()
+                    
+                    // Check if we need to move to next workout
+                    if remainingTime == 0 {
+                        await moveToNextWorkout()
+                    }
                 }
                 
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay

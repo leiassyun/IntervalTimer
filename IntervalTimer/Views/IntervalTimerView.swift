@@ -7,10 +7,11 @@ struct IntervalTimerView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var showControlButtons = false
-    @State private var audioPlayer: AVAudioPlayer?
+    @State private var lastPlayedNumber: Int = 0
     
     var body: some View {
         VStack {
+            // Top Control Bar
             HStack {
                 Button(action: {
                     Task { @MainActor in
@@ -185,7 +186,14 @@ struct IntervalTimerView: View {
             if let preset = preset {
                 timerManager.workouts = preset.workouts
                 timerManager.onWorkoutComplete = {
-                    playSound()
+                    SoundManager.shared.playSound(named: "timerComplete")
+                }
+                timerManager.onTimerTick = { remainingTime in
+                    let seconds = Int(remainingTime)
+                    if seconds <= 5 && seconds > 0 && seconds != lastPlayedNumber {
+                        lastPlayedNumber = seconds
+                        SoundManager.shared.playSound(named: String(seconds))
+                    }
                 }
                 Task { @MainActor in
                     if let firstWorkout = preset.workouts.first {
@@ -199,7 +207,7 @@ struct IntervalTimerView: View {
         .onDisappear {
             Task { @MainActor in
                 await timerManager.stopTimer()
-                stopSound()
+                SoundManager.shared.stopSound()
                 setTabBarVisibility(hidden: false)
             }
         }
@@ -221,20 +229,5 @@ struct IntervalTimerView: View {
         if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
             tabBarController.tabBar.isHidden = hidden
         }
-    }
-    
-    private func playSound() {
-        guard let url = Bundle.main.url(forResource: "timerComplete", withExtension: "mp3") else { return }
-        do {
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.play()
-        } catch {
-            print("Error playing sound: \(error)")
-        }
-    }
-    
-    private func stopSound() {
-        audioPlayer?.stop()
-        audioPlayer = nil
     }
 }
