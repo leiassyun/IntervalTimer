@@ -2,7 +2,6 @@ import SwiftUI
 
 struct WorkoutRowView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
-    @EnvironmentObject var presetManager: PresetManager
     let index: Int
     @Binding var workout: Workout
     @Binding var showingTimePicker: Bool
@@ -37,9 +36,8 @@ struct WorkoutRowView: View {
                     .padding(.horizontal)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 10)
-        .background(Color.clear)
+        .contentShape(Rectangle())
     }
     
     private func formatDuration(_ duration: Int) -> String {

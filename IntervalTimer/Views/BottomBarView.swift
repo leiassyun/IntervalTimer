@@ -15,27 +15,23 @@ struct PresetBottomBarView: View {
                         .padding(.leading, 10)
                 }
                 TextField("", text: $presetName)
-                    .font(.largeTitle)
-                    .bold()
+                    .font(.title3)
                     .foregroundColor(appearanceManager.fontColor)
                     .padding(.leading, 10)
             }
-            .frame(height: 50)
             
             Spacer()
             
-            Button(action: onSave) {
-                HStack {
-                    Image(systemName: "checkmark")
-                    Text("Save")
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .foregroundColor(presetName.isEmpty ? .gray : .black)
-                .background(presetName.isEmpty ? Color.gray.opacity(0.6) : Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                .cornerRadius(8)
+            AppButton(
+                title: "Save",
+                icon: "checkmark",
+                type: .primary,
+                isFullWidth: false
+            ) {
+                onSave()
             }
             .disabled(presetName.isEmpty)
+            .opacity(presetName.isEmpty ? 0.6 : 1.0)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

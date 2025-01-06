@@ -8,17 +8,32 @@ struct IntervalTimerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
+        configureTabBarAppearance()
+    }
+    
+    private func configureTabBarAppearance() {
         let appearance = UITabBarAppearance()
+        
+        // Normal state
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .font: UIFont.systemFont(ofSize: 18, weight: .medium)
+            .font: UIFont.systemFont(ofSize: 18, weight: .medium),
+            .foregroundColor: UIColor(AppTheme.Colors.white)
         ]
+        
+        // Selected state
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 18, weight: .bold),
-            .foregroundColor: UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)
+            .foregroundColor: UIColor(AppTheme.Colors.primary)
         ]
+        
+        // Set the appearance for different modes
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
         
+        // If you're supporting iOS 15+, you might want to configure the unified appearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+        }
     }
     
     var body: some Scene {

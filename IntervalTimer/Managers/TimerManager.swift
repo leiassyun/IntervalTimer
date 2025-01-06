@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 @MainActor
 class TimerManager: ObservableObject {
@@ -19,6 +20,9 @@ class TimerManager: ObservableObject {
         guard !isRunning else { return }
         isRunning = true
         startBackgroundTask()
+        
+        // Disable idle timer when timer starts
+        UIApplication.shared.isIdleTimerDisabled = true
         
         timerTask = Task {
             while !Task.isCancelled && isRunning {
@@ -46,12 +50,19 @@ class TimerManager: ObservableObject {
         timerTask?.cancel()
         timerTask = nil
         endBackgroundTask()
+        
+        // Re-enable idle timer when timer is paused
+        UIApplication.shared.isIdleTimerDisabled = false
     }
     
     func stopTimer() async {
         await pauseTimer()
         remainingTime = 0
         currentWorkoutIndex = 0
+        isWorkoutComplete = false
+        
+        // Ensure idle timer is re-enabled when timer stops completely
+        UIApplication.shared.isIdleTimerDisabled = false
     }
     
     func moveToNextWorkout() async {
@@ -94,11 +105,15 @@ class TimerManager: ObservableObject {
         if let firstWorkout = workouts.first {
             remainingTime = Double(firstWorkout.duration)
         }
+        
+        // Ensure idle timer is re-enabled
+        UIApplication.shared.isIdleTimerDisabled = false
     }
     
     deinit {
         Task { @MainActor in
             await stopTimer()
+            UIApplication.shared.isIdleTimerDisabled = false
         }
     }
 }

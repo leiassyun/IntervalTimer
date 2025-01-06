@@ -13,57 +13,41 @@ struct IntervalTimerView: View {
         VStack {
             // Top Control Bar
             HStack {
-                Button(action: {
+                AppButton(
+                    title: "",
+                    icon: "backward.fill",
+                    type: .secondary,
+                    isFullWidth: false
+                ) {
                     Task { @MainActor in
                         await timerManager.moveToPreviousWorkout()
                     }
-                }) {
-                    Image(systemName: "backward.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .padding(15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
-                        )
-                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                 }
                 
                 Spacer()
                 
-                Button(action: {
+                AppButton(
+                    title: "Hold to exit",
+                    type: .secondary,
+                    isFullWidth: false
+                ) {
                     Task { @MainActor in
                         await timerManager.stopTimer()
                         dismiss()
                     }
-                }) {
-                    Text("Hold to exit")
-                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                        .padding(15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
-                        )
                 }
                 
                 Spacer()
                 
-                Button(action: {
+                AppButton(
+                    title: "",
+                    icon: "forward.fill",
+                    type: .secondary,
+                    isFullWidth: false
+                ) {
                     Task { @MainActor in
                         await timerManager.moveToNextWorkout()
                     }
-                }) {
-                    Image(systemName: "forward.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20, height: 20)
-                        .padding(15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 0.15)))
-                        )
-                        .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
                 }
             }
             .padding()
@@ -115,59 +99,48 @@ struct IntervalTimerView: View {
             // Control Buttons
             VStack {
                 if timerManager.isWorkoutComplete {
-                    Button(action: {
+                    AppButton(
+                        title: "Complete",
+                        type: .primary,
+                        isFullWidth: false
+                    ) {
                         dismiss()
-                    }) {
-                        Text("Complete")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                            .padding()
-                            .frame(width: 110, height: 45)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                            )
                     }
+                    .padding(.horizontal)
                 } else if showControlButtons {
-                    VStack {
-                        Spacer()
-                        Button(action: {
+                    VStack(spacing: 16) {
+                        AppButton(
+                            title: "Resume",
+                            type: .primary,
+                            isFullWidth: true
+                        ) {
                             Task { @MainActor in
                                 await timerManager.startTimer()
                                 showControlButtons = false
                             }
-                        }) {
-                            Text("Resume")
-                                .font(.headline)
-                                .foregroundColor(.black)
-                                .padding()
-                                .frame(width: 110, height: 45)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
-                                )
                         }
-                        Button(action: {
+                        
+                        AppButton(
+                            title: "Restart",
+                            type: .tertiary,
+                            isFullWidth: true
+                        ) {
                             Task { @MainActor in
                                 await timerManager.resetToStart()
                                 await timerManager.startTimer()
                                 showControlButtons = false
                             }
-                        }) {
-                            Text("Restart")
-                                .font(.headline)
-                                .foregroundColor(.gray)
-                                .padding()
                         }
-                        .padding(.bottom, 40)
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom, 40)
                 } else {
                     Text("Tap anywhere to pause")
                         .font(.subheadline)
                         .foregroundStyle(appearanceManager.fontColor)
                 }
             }
-            .frame(height: 100)
+            .frame(height: 150)
             .animation(.easeInOut, value: showControlButtons)
         }
         .contentShape(Rectangle())
