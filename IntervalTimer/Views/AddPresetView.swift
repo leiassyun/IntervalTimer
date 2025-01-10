@@ -8,21 +8,31 @@ struct AddPresetView: View {
     @State private var showingTimePicker = false
     @State private var selectedWorkoutIndex: Int?
     @State private var showingDiscardAlert = false
+    @State private var isEditing = false
     
     @State private var initialPresetName: String
     @State private var initialWorkouts: [Workout]
     @State private var presetName = ""
     @State private var workouts: [Workout] = []
+    
     @FocusState private var focusedWorkoutIndex: Int?
     @Environment(\.dismiss) var dismiss
     
-    init(selectedPreset: Preset?, presetManager: PresetManager, selectedTab: Binding<Int>) {
+    init(selectedPreset: Binding<Preset?>, selectedTab: Binding<Int>) {
+        _selectedPreset = State(initialValue: selectedPreset.wrappedValue)
         _selectedTab = selectedTab
-        self.selectedPreset = selectedPreset
-        _initialPresetName = State(initialValue: selectedPreset?.name ?? "")
-        _initialWorkouts = State(initialValue: selectedPreset?.workouts ?? [])
-        _presetName = State(initialValue: selectedPreset?.name ?? "")
-        _workouts = State(initialValue: selectedPreset?.workouts ?? [])
+        
+        if let preset = selectedPreset.wrappedValue {
+            _presetName = State(initialValue: preset.name)
+            _workouts = State(initialValue: preset.workouts)
+            _initialPresetName = State(initialValue: preset.name)
+            _initialWorkouts = State(initialValue: preset.workouts)
+        } else {
+            _presetName = State(initialValue: "")
+            _workouts = State(initialValue: [])
+            _initialPresetName = State(initialValue: "")
+            _initialWorkouts = State(initialValue: [])
+        }
     }
     
     private var hasDefaultState: Bool {
@@ -64,54 +74,139 @@ struct AddPresetView: View {
                 
                 VStack(spacing: 0) {
                     List {
-                        ForEach(Array(workouts.enumerated()), id: \.element.id) { index, _ in
-                            WorkoutRowView(
-                                index: index,
-                                workout: $workouts[index],
-                                showingTimePicker: $showingTimePicker,
-                                selectedWorkoutIndex: $selectedWorkoutIndex,
-                                focusedWorkoutIndex: $focusedWorkoutIndex
-                            )
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                            .listRowSeparator(.hidden)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    print("DEBUG: Delete button tapped for workout \(index)")
-                                    withAnimation {
-                                        guard index < workouts.count else { return }
-                                        workouts.remove(at: index)
+                        if isEditing{
+                            ForEach(Array(workouts.enumerated()), id: \.element.id) { index, workout in
+                                HStack{
+                                    Image(systemName: "line.3.horizontal")
+                                        .foregroundColor(.gray)
+                                        .frame(width: 20)
+                                        .padding(.leading, 16)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture{
+                                            withAnimation {
+                                                isEditing.toggle()
+                                            }
+                                            print(isEditing)
+                                        }
+                                    
+                                    
+                                    TextField("Session name", text: $workouts[index].name)
+                                        .font(.system(.title3, weight: .semibold))
+                                        .foregroundColor(appearanceManager.fontColor)
+                                        .textFieldStyle(PlainTextFieldStyle())
+                                        .padding(.vertical, 5)
+                                        .focused($focusedWorkoutIndex, equals: index)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    
+                                    Spacer()
+                                    
+                                    
+                                    Button(action: {
+                                        selectedWorkoutIndex = index
+                                        showingTimePicker = true
+                                    }) {
+                                        Text(formatDuration(workout.duration))
+                                            .foregroundColor(appearanceManager.fontColor)
+                                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                                            .padding(.horizontal)
                                     }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
                                 }
-                                .tint(.red)
+                                .listRowInsets(EdgeInsets())
+                                .frame(maxWidth: .infinity)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            workouts.remove(at: index)
+                                            saveChanges()
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
+                            }
+                            .onMove { source, destination in
+                                guard isEditing else { return }
+                                withAnimation {
+                                    workouts.move(fromOffsets: source, toOffset: destination)
+                                }
+                                saveChanges()
                             }
                         }
-                        .onMove { source, destination in
-                            print("DEBUG: Moving workout from index \(source.first!) to \(destination)")
-                            withAnimation(.default.speed(2.0)) {
-                                workouts.move(fromOffsets: source, toOffset: destination)
+                        else{
+                            ForEach(Array(workouts.enumerated()), id: \.element.id) { index, workout in
+                                HStack(spacing: 12) {
+                                    // Drag handle
+                                    Image(systemName: "line.3.horizontal")
+                                        .foregroundColor(.gray)
+                                        .frame(width: 20)
+                                        .padding(.leading, 16)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture{
+                                            withAnimation {
+                                                isEditing.toggle()
+                                            }
+                                            print(isEditing)
+                                        }
+                                    
+                                    
+                                    TextField("Session name", text: $workouts[index].name)
+                                        .font(.system(.title3, weight: .semibold))
+                                        .foregroundColor(appearanceManager.fontColor)
+                                        .textFieldStyle(PlainTextFieldStyle())
+                                        .padding(.vertical, 5)
+                                        .focused($focusedWorkoutIndex, equals: index)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    
+                                    Spacer()
+                                    
+                                    
+                                    Button(action: {
+                                        selectedWorkoutIndex = index
+                                        showingTimePicker = true
+                                    }) {
+                                        Text(formatDuration(workout.duration))
+                                            .foregroundColor(appearanceManager.fontColor)
+                                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                                            .padding(.horizontal)
+                                    }
+                                }
+                                .listRowInsets(EdgeInsets())
+                                .frame(maxWidth: .infinity)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            workouts.remove(at: index)
+                                            saveChanges()
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                    .tint(.red)
+                                }
                             }
+                            
                         }
+                        
                         
                         AddWorkoutButton(
                             workouts: $workouts,
                             focusedWorkoutIndex: $focusedWorkoutIndex
                         )
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
-                        .listRowSeparator(.hidden)
                     }
                     .listStyle(.plain)
-                    .environment(\.editMode, .constant(.active))
+                    .environment(\.editMode, Binding<EditMode>(
+                        get: { isEditing ? .active : .inactive },
+                        set: { _ in }
+                    ))
                 }
                 .background(appearanceManager.backgroundColor)
                 
                 Spacer()
                 
-                PresetBottomBarView(presetName: $presetName) {
+                PresetBottomBarView(presetName: $presetName, workouts: $workouts) {
                     saveChanges()
+                    dismiss()
                     selectedTab = 0
                 }
             }
@@ -187,13 +282,38 @@ struct AddPresetView: View {
         }
     }
     
+    private func formatDuration(_ duration: Int) -> String {
+        let minutes = duration / 60
+        let seconds = duration % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
     private func saveChanges() {
         if let preset = selectedPreset {
             presetManager.updatePreset(preset: preset, workouts: workouts, name: presetName)
         } else {
             presetManager.addPreset(name: presetName, workouts: workouts)
         }
-        dismiss()
+    }
+    struct WorkoutDropDelegate: DropDelegate {
+        let item: Workout
+        @Binding var workouts: [Workout]
+        let onSave: () -> Void // Callback to save changes
+        
+        func performDrop(info: DropInfo) -> Bool {
+            onSave() // Trigger save after drop
+            return true
+        }
+        
+        func dropEntered(info: DropInfo) {
+            guard let draggedWorkout = workouts.first(where: { $0.id == item.id }),
+                  let fromIndex = workouts.firstIndex(of: draggedWorkout),
+                  let toIndex = workouts.firstIndex(of: item),
+                  fromIndex != toIndex else { return }
+            
+            withAnimation {
+                workouts.move(fromOffsets: IndexSet(integer: fromIndex), toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex)
+            }
+        }
     }
 }
 

@@ -3,6 +3,9 @@ import SwiftUI
 struct MainTabView: View {
     @EnvironmentObject private var presetManager: PresetManager
     @State private var selectedTab = 0
+    @State private var selectedPreset: Preset? = nil 
+
+    
     
     var body: some View {
         NavigationView {
@@ -25,8 +28,8 @@ struct MainTabView: View {
                 }
                 if selectedTab == 2 {
                     AddPresetView(
-                        selectedPreset: nil,
-                        presetManager: presetManager,
+                        selectedPreset: $selectedPreset,
+                        
                         selectedTab: $selectedTab
                     )
                     .transition(.move(edge: .trailing))

@@ -64,8 +64,7 @@ struct PresetTabView: View {
                 }
                 .navigationDestination(isPresented: $navigateToAddPreset) {
                     AddPresetView(
-                        selectedPreset: selectedPreset,
-                        presetManager: presetManager,
+                        selectedPreset: $selectedPreset,
                         selectedTab: $selectedTab
                     )
                 }
@@ -74,6 +73,7 @@ struct PresetTabView: View {
                 if let preset = selectedPreset {
                     presetDetailSheet(preset: preset)
                 }
+                
             }
             .sheet(isPresented: $navigateToShare) {
                 if let selectedPreset = selectedPreset {

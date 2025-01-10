@@ -8,6 +8,7 @@ struct IntervalTimerView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var showControlButtons = false
     @State private var lastPlayedNumber: Int = 0
+    @State private var speechSynthesizer = AVSpeechSynthesizer()
     
     var body: some View {
         VStack {
@@ -60,6 +61,12 @@ struct IntervalTimerView: View {
                     .font(.system(.title, design: .rounded, weight: .bold))
                     .foregroundColor(appearanceManager.fontColor)
                     .padding()
+                    .onChange(of: timerManager.currentWorkoutIndex) { newValue in
+                        Task { @MainActor in
+                            let currentWorkoutName = preset.workouts[newValue].name
+                            speakWorkoutName(currentWorkoutName)
+                        }
+                    }
             }
             
             // Timer Display
@@ -171,6 +178,8 @@ struct IntervalTimerView: View {
                 Task { @MainActor in
                     if let firstWorkout = preset.workouts.first {
                         timerManager.setRemainingTime(Double(firstWorkout.duration))
+                        speakWorkoutName(firstWorkout.name)
+
                     }
                     await timerManager.startTimer()
                 }
@@ -202,5 +211,33 @@ struct IntervalTimerView: View {
         if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
             tabBarController.tabBar.isHidden = hidden
         }
+    }
+    private func speakWorkoutName(_ name: String) {
+        guard !name.isEmpty else {
+            print("Workout name is empty. Skipping speech.")
+            return
+        }
+        let language: String
+        if name.range(of: "\\p{Hangul}", options: .regularExpression) != nil {
+            language = "ko-KR"
+        } else {
+            language = "en-US"
+        }
+        let utterance = AVSpeechUtterance(string: name)
+        utterance.voice = AVSpeechSynthesisVoice(language: language)
+        utterance.rate = 0.5
+    
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+        }
+        
+        if speechSynthesizer.isSpeaking {
+            speechSynthesizer.stopSpeaking(at: .immediate)
+        }
+        speechSynthesizer.speak(utterance)
+        print("Speaking workout name: \(name) in language: \(language)")
     }
 }

@@ -7,6 +7,9 @@ struct WorkoutRowView: View {
     @Binding var showingTimePicker: Bool
     @Binding var selectedWorkoutIndex: Int?
     @FocusState.Binding var focusedWorkoutIndex: Int?
+    @Binding var isEditing: Bool
+    @State private var draggedWorkout: Workout? = nil
+    
     
     var body: some View {
         HStack(spacing: 12) {
@@ -15,6 +18,17 @@ struct WorkoutRowView: View {
                 .frame(width: 20)
                 .padding(.leading, 16)
                 .contentShape(Rectangle())
+                .onTapGesture {
+                    isEditing.toggle()
+                    print(isEditing)
+                }
+                .onDrag {
+                    guard isEditing else { return NSItemProvider() } 
+                    draggedWorkout = workout
+                    return NSItemProvider(object: "\(index)" as NSString)
+                }
+            
+            
             
             TextField("Session name", text: $workout.name)
                 .font(.system(.title3, weight: .semibold))
@@ -36,8 +50,19 @@ struct WorkoutRowView: View {
                     .padding(.horizontal)
             }
         }
-        .padding(.vertical, 10)
-        .contentShape(Rectangle())
+        
+        .onTapGesture {
+            focusedWorkoutIndex = index
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                print("Delete workout at index \(index)")
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            .tint(.red)
+            
+        }
     }
     
     private func formatDuration(_ duration: Int) -> String {

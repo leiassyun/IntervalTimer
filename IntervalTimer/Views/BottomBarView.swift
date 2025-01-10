@@ -3,6 +3,8 @@ import SwiftUI
 struct PresetBottomBarView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @Binding var presetName: String
+    @Binding var workouts: [Workout]
+    @Environment(\.dismiss) var dismiss
     let onSave: () -> Void
     
     var body: some View {
@@ -30,8 +32,8 @@ struct PresetBottomBarView: View {
             ) {
                 onSave()
             }
-            .disabled(presetName.isEmpty)
-            .opacity(presetName.isEmpty ? 0.6 : 1.0)
+            .disabled(presetName.isEmpty || workouts.isEmpty)
+            .opacity(presetName.isEmpty || workouts.isEmpty ? 0.6 : 1.0)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -39,4 +41,5 @@ struct PresetBottomBarView: View {
         .cornerRadius(10)
         .padding(.horizontal)
     }
+  
 }

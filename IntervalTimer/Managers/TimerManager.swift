@@ -67,7 +67,7 @@ class TimerManager: ObservableObject {
     
     func moveToNextWorkout() async {
         guard currentWorkoutIndex < workouts.count - 1 else {
-            await stopTimer()
+            await pauseTimer()
             isWorkoutComplete = true
             onWorkoutComplete?()
             return
