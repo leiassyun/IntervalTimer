@@ -64,7 +64,8 @@ struct IntervalTimerView: View {
                     .onChange(of: timerManager.currentWorkoutIndex) { newValue in
                         Task { @MainActor in
                             let currentWorkoutName = preset.workouts[newValue].name
-                            speakWorkoutName(currentWorkoutName)
+                            let currentWorkoutTime = preset.workouts[newValue].duration
+                            speakWorkoutName(currentWorkoutName, duration: currentWorkoutTime)
                         }
                     }
             }
@@ -178,8 +179,8 @@ struct IntervalTimerView: View {
                 Task { @MainActor in
                     if let firstWorkout = preset.workouts.first {
                         timerManager.setRemainingTime(Double(firstWorkout.duration))
-                        speakWorkoutName(firstWorkout.name)
-
+                        speakWorkoutName(firstWorkout.name, duration: firstWorkout.duration)
+                        
                     }
                     await timerManager.startTimer()
                 }
@@ -212,32 +213,69 @@ struct IntervalTimerView: View {
             tabBarController.tabBar.isHidden = hidden
         }
     }
-    private func speakWorkoutName(_ name: String) {
+    
+    private func speakWorkoutName(_ name: String, duration: Int? = nil) {
         guard !name.isEmpty else {
             print("Workout name is empty. Skipping speech.")
             return
         }
+        
+        // Configure the audio session
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+            return
+        }
+        
+        // Determine language for TTS
         let language: String
         if name.range(of: "\\p{Hangul}", options: .regularExpression) != nil {
             language = "ko-KR"
         } else {
             language = "en-US"
         }
-        let utterance = AVSpeechUtterance(string: name)
-        utterance.voice = AVSpeechSynthesisVoice(language: language)
-        utterance.rate = 0.5
-    
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch {
-            print("Failed to configure audio session: \(error.localizedDescription)")
-        }
         
+        // Stop any existing speech
         if speechSynthesizer.isSpeaking {
             speechSynthesizer.stopSpeaking(at: .immediate)
         }
-        speechSynthesizer.speak(utterance)
-        print("Speaking workout name: \(name) in language: \(language)")
+        
+        // Create and configure utterances
+        let nameUtterance = AVSpeechUtterance(string: name)
+        nameUtterance.voice = AVSpeechSynthesisVoice(language: language)
+        nameUtterance.rate = 0.5
+        
+        var durationText = ""
+        if let duration = duration {
+            let minutes = duration / 60
+            let seconds = duration % 60
+            if minutes > 0 {
+                durationText += "\(minutes) minute" + (minutes > 1 ? "s" : "")
+            }
+            if seconds > 0 {
+                if !durationText.isEmpty {
+                    durationText += " and "
+                }
+                durationText += "\(seconds) second" + (seconds > 1 ? "s" : "")
+            }
+        }
+        
+        if !durationText.isEmpty {
+            let pauseUtterance = AVSpeechUtterance(string: " ")
+            pauseUtterance.rate = 0.1 // Short pause
+            let durationUtterance = AVSpeechUtterance(string: durationText)
+            durationUtterance.voice = AVSpeechSynthesisVoice(language: language)
+            durationUtterance.rate = 0.5
+            
+            // Speak name, pause, and duration
+            speechSynthesizer.speak(nameUtterance)
+            speechSynthesizer.speak(pauseUtterance)
+            speechSynthesizer.speak(durationUtterance)
+        } else {
+            // Speak only the name
+            speechSynthesizer.speak(nameUtterance)
+        }
     }
 }

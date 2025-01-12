@@ -65,6 +65,7 @@ struct PresetTabView: View {
                 .navigationDestination(isPresented: $navigateToAddPreset) {
                     AddPresetView(
                         selectedPreset: $selectedPreset,
+
                         selectedTab: $selectedTab
                     )
                 }
