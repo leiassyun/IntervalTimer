@@ -18,5 +18,8 @@ struct AddWorkoutButton: View {
                 focusedWorkoutIndex = workouts.count - 1
             }
         }
+        .listRowInsets(EdgeInsets())
+        .listRowSeparator(.hidden)
+        .listRowBackground(appearanceManager.backgroundColor) 
     }
 }

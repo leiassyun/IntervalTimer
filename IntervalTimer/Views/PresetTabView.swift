@@ -3,6 +3,7 @@ import SwiftUI
 struct PresetTabView: View {
     @EnvironmentObject var presetManager: PresetManager
     @EnvironmentObject var appearanceManager: AppearanceManager
+    @Environment(\.colorScheme) var colorScheme
     @Binding var selectedTab: Int
     @State private var showActionSheet = false
     @State private var selectedPreset: Preset?
@@ -35,14 +36,29 @@ struct PresetTabView: View {
                             .font(.system(.title, weight: .bold))
                             .foregroundColor(appearanceManager.fontColor)
                         Spacer()
+//                        AppButton(
+//                            title: "",
+//                            icon: "plus",
+//                            type: .tertiary,
+//                            isFullWidth: false,
+//                            action: {
+//                                selectedTab = 2
+//                            }
+//                        )
                         AppButton(
                             title: "",
                             icon: "plus",
-                            type: .tertiary,
+                            type: .topSmall,
                             isFullWidth: false,
                             action: {
                                 selectedTab = 2
                             }
+//                            foregroundColor: appearanceManager.fontColor,
+//                            backgroundColor: .clear // No background color
+                        )
+                        .topSmallButtonStyle(
+                            foregroundColor: appearanceManager.fontColor,
+                            backgroundColor: .clear
                         )
                     }
                     .padding(.horizontal)

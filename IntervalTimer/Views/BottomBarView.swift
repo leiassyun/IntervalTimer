@@ -27,7 +27,7 @@ struct PresetBottomBarView: View {
             AppButton(
                 title: "Save",
                 icon: "checkmark",
-                type: .primary,
+                type: .secondary,
                 isFullWidth: false
             ) {
                 onSave()

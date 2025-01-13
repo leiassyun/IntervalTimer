@@ -3,12 +3,39 @@ import UIKit
 
 @main
 struct IntervalTimerApp: App {
+    @Environment(\.colorScheme) var colorScheme
+    
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var presetManager = PresetManager()
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
         configureTabBarAppearance()
+    }
+    var body: some Scene {
+        WindowGroup {
+            MainTabView()
+                .environmentObject(appearanceManager)
+                .environmentObject(presetManager)
+                .environmentObject(appDelegate)
+                .preferredColorScheme(appearanceManager.isDarkMode ? .dark : .light)
+                .background(
+                    appearanceManager.isDarkMode ? Color.black : Color.white
+                )
+                .edgesIgnoringSafeArea(.all)
+                .onChange(of: appearanceManager.isDarkMode) { _ in
+                    configureTabBarAppearance()
+                    if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
+                        tabBarController.tabBar.standardAppearance = UITabBar.appearance().standardAppearance
+                        if #available(iOS 15.0, *) {
+                            tabBarController.tabBar.scrollEdgeAppearance = UITabBar.appearance().scrollEdgeAppearance
+                        }
+                    }
+                }
+                .onAppear {
+                    configureTabBarAppearance()
+                }
+        }
     }
     
     private func configureTabBarAppearance() {
@@ -17,35 +44,24 @@ struct IntervalTimerApp: App {
         // Normal state
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 18, weight: .medium),
-            .foregroundColor: UIColor(AppTheme.Colors.white)
+            .foregroundColor: UIColor(Color.gray)
         ]
         
-        // Selected state
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 18, weight: .bold),
-            .foregroundColor: UIColor(AppTheme.Colors.primary)
+            .foregroundColor: UIColor(Color(UIColor(red: 255/255, green: 149/255, blue: 0/255, alpha: 1)))
         ]
         
-        // Set the appearance for different modes
+        appearance.backgroundEffect = nil
+        appearance.backgroundColor = UIColor.clear
+        
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
         
-        // If you're supporting iOS 15+, you might want to configure the unified appearance
+        // iOS 15+ unified appearance
         if #available(iOS 15.0, *) {
             UITabBar.appearance().scrollEdgeAppearance = appearance
         }
     }
     
-    var body: some Scene {
-        WindowGroup {
-            MainTabView()
-                .environmentObject(appearanceManager)
-                .environmentObject(presetManager)
-                .environmentObject(appDelegate)
-                .preferredColorScheme(appearanceManager.isDarkMode ? .dark : .light)
-                .onAppear {
-                    appDelegate.presetManager = presetManager
-                }
-        }
-    }
 }

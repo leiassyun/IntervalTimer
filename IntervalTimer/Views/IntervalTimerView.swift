@@ -109,7 +109,7 @@ struct IntervalTimerView: View {
                 if timerManager.isWorkoutComplete {
                     AppButton(
                         title: "Complete",
-                        type: .primary,
+                        type: .secondary,
                         isFullWidth: false
                     ) {
                         dismiss()
@@ -119,7 +119,7 @@ struct IntervalTimerView: View {
                     VStack(spacing: 16) {
                         AppButton(
                             title: "Resume",
-                            type: .primary,
+                            type: .secondary,
                             isFullWidth: true
                         ) {
                             Task { @MainActor in

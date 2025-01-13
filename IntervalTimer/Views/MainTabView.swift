@@ -2,9 +2,10 @@ import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject private var presetManager: PresetManager
+    @Environment(\.colorScheme) var colorScheme
     @State private var selectedTab = 0
-    @State private var selectedPreset: Preset? = nil 
-
+    @State private var selectedPreset: Preset? = nil
+    
     
     
     var body: some View {
@@ -20,22 +21,26 @@ struct MainTabView: View {
                         
                         SettingsView(selectedTab: $selectedTab)
                             .tabItem {
-                                Text("Menu")
+                                Text("Menu")   
                             }
                             .tag(1)
+            
                     }
-                    .accentColor(AppTheme.Colors.primary) // This should change the active tab color
+                    .accentColor(AppTheme.Colors.primary(for: colorScheme))
                 }
                 if selectedTab == 2 {
                     AddPresetView(
                         selectedPreset: $selectedPreset,
-                        
                         selectedTab: $selectedTab
                     )
                     .transition(.move(edge: .trailing))
                     .zIndex(1)
                 }
             }
+            
+
+
+            
         }
     }
 }

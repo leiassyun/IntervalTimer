@@ -2,19 +2,40 @@ import SwiftUI
 
 /// Manages appearance settings for the app.
 class AppearanceManager: ObservableObject {
-    @Published var appearance: Appearance = .dark
+    // MARK: - Published Properties
+    @Published var appearance: Appearance {
+        didSet {
+            UserDefaults.standard.set(appearance.rawValue, forKey: "SelectedAppearance")
+        }
+    }
     @Published var fontColor: Color = .white
     @Published var backgroundColor: Color = .black
+    @Published var accentColor: Color = .blue // Default accent color
     @Published var isDarkMode: Bool = false
 
+    // MARK: - Initializer
     init() {
-        applyAppearance() // Apply initial appearance
+        if let savedAppearance = UserDefaults.standard.string(forKey: "appearance"),
+           let appearance = Appearance(rawValue: savedAppearance) {
+            self.appearance = appearance
+        } else {
+            self.appearance = .system // Default to system appearance
+        }
+        applyAppearance()
     }
 
-    /// Updates the appearance based on user selection.
-    func updateAppearance(_ newAppearance: Appearance) {
-        guard appearance != newAppearance else { return }
-        appearance = newAppearance
+    // MARK: - Core Appearance Logic
+    func updateSystemAppearance(_ appearance: Appearance) {
+        self.appearance = appearance
+        switch appearance {
+        case .system:
+            // Use the system's dynamic appearance
+            break
+        case .light:
+            setLightMode()
+        case .dark:
+            setDarkMode()
+        }
         applyAppearance()
     }
 
@@ -30,11 +51,16 @@ class AppearanceManager: ObservableObject {
             setDarkMode()
         }
     }
+    func toggleMode() {
+           isDarkMode.toggle()
+       }
 
+    // MARK: - Appearance Mode Management
     /// Applies light mode settings.
     private func setLightMode() {
         fontColor = .black
         backgroundColor = .white
+        accentColor = .blue // Light mode accent
         updateInterfaceStyle(.light)
         isDarkMode = false
     }
@@ -43,17 +69,18 @@ class AppearanceManager: ObservableObject {
     private func setDarkMode() {
         fontColor = .white
         backgroundColor = .black
+        accentColor = .orange // Dark mode accent
         updateInterfaceStyle(.dark)
         isDarkMode = true
     }
 
+    // MARK: - UIKit Integration
     /// Updates the interface style for the active window.
     private func updateInterfaceStyle(_ style: UIUserInterfaceStyle) {
-        guard let window = activeWindow() else {     
+        guard let window = activeWindow() else {
             return
         }
         window.overrideUserInterfaceStyle = style
-    
     }
 
     /// Retrieves the active window for the app.

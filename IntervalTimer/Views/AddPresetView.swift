@@ -3,6 +3,7 @@ import SwiftUI
 struct AddPresetView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var presetManager: PresetManager
+    @Environment(\.colorScheme) var colorScheme
     @Binding var selectedTab: Int
     @State private var selectedPreset: Preset?
     @State private var showingTimePicker = false
@@ -33,6 +34,7 @@ struct AddPresetView: View {
             _initialPresetName = State(initialValue: "")
             _initialWorkouts = State(initialValue: [])
         }
+        
     }
     
     private var hasDefaultState: Bool {
@@ -69,8 +71,11 @@ struct AddPresetView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                
+                
                 PresetHeaderView(totalDuration: calculateTotalDuration())
                     .padding(.bottom, 20)
+                    .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
                 
                 VStack(spacing: 0) {
                     List {
@@ -112,25 +117,30 @@ struct AddPresetView: View {
                                     }
                                 }
                                 .listRowInsets(EdgeInsets())
+                                     .listRowSeparator(.hidden) // Ensure separators are always hidden
+                                     .listRowBackground(appearanceManager.backgroundColor)
+                                .listRowBackground(appearanceManager.backgroundColor)
                                 .frame(maxWidth: .infinity)
+                                .background(appearanceManager.backgroundColor)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
                                         withAnimation {
                                             workouts.remove(at: index)
-                                            saveChanges()
+                                            updateChange()
                                         }
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
                                     .tint(.red)
                                 }
+                                
                             }
                             .onMove { source, destination in
                                 guard isEditing else { return }
                                 withAnimation {
                                     workouts.move(fromOffsets: source, toOffset: destination)
                                 }
-                                saveChanges()
+                                
                             }
                         }
                         else{
@@ -172,12 +182,16 @@ struct AddPresetView: View {
                                     }
                                 }
                                 .listRowInsets(EdgeInsets())
+                                     .listRowSeparator(.hidden)
+                                     .listRowBackground(appearanceManager.backgroundColor)
                                 .frame(maxWidth: .infinity)
+                                .background(appearanceManager.backgroundColor)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
                                         withAnimation {
                                             workouts.remove(at: index)
-                                            saveChanges()
+                                            updateChange()
+                                            
                                         }
                                     } label: {
                                         Label("Delete", systemImage: "trash")
@@ -194,6 +208,8 @@ struct AddPresetView: View {
                             focusedWorkoutIndex: $focusedWorkoutIndex
                         )
                     }
+                    .scrollContentBackground(.hidden)
+                    .listRowSeparator(.hidden)
                     .listStyle(.plain)
                     .environment(\.editMode, Binding<EditMode>(
                         get: { isEditing ? .active : .inactive },
@@ -209,8 +225,9 @@ struct AddPresetView: View {
                     dismiss()
                     selectedTab = 0
                 }
+               
             }
-            .background(appearanceManager.backgroundColor)
+            .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
             .onAppear {
                 if workouts.isEmpty {
                     workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 60))
@@ -251,8 +268,10 @@ struct AddPresetView: View {
                     AppButton(
                         title: "Back",
                         icon: "chevron.left",
-                        type: .secondary,
-                        isFullWidth: false
+                        type: .topSmall,
+                        isFullWidth: false,
+                        foregroundColor: AppTheme.Colors.primary(for: colorScheme),
+                        backgroundColor: AppTheme.Colors.secondaryBackground(for: colorScheme)
                     ) {
                         handleBack()
                     }
@@ -286,6 +305,9 @@ struct AddPresetView: View {
         let minutes = duration / 60
         let seconds = duration % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+    private func updateChange() {
+        print("Workout changes updated locally.")
     }
     private func saveChanges() {
         if let preset = selectedPreset {
