@@ -15,7 +15,7 @@ struct ShareView: View {
                     AppButton(
                         title: "",
                         icon: "xmark",
-                        type: .tertiary,
+                        type: .textOnly,
                         isFullWidth: false
                     ) {
                         dismiss()

@@ -36,37 +36,21 @@ struct PresetTabView: View {
                             .font(.system(.title, weight: .bold))
                             .foregroundColor(appearanceManager.fontColor)
                         Spacer()
-//                        AppButton(
-//                            title: "",
-//                            icon: "plus",
-//                            type: .tertiary,
-//                            isFullWidth: false,
-//                            action: {
-//                                selectedTab = 2
-//                            }
-//                        )
                         AppButton(
                             title: "",
                             icon: "plus",
-                            type: .topSmall,
+                            type: .textOnly,
                             isFullWidth: false,
-                            action: {
-                                selectedTab = 2
-                            }
-//                            foregroundColor: appearanceManager.fontColor,
-//                            backgroundColor: .clear // No background color
-                        )
-                        .topSmallButtonStyle(
                             foregroundColor: appearanceManager.fontColor,
-                            backgroundColor: .clear
+                            backgroundColor: Color.clear,
+                            action: {
+                                selectedTab = 1
+                            }
                         )
                     }
                     .padding(.horizontal)
                     .padding(.top)
                     Spacer().frame(height: 20)
-                    
-//                    // Quick Start Section
-//                    quickStartSection
                     
                     // Presets ScrollView
                     presetsScrollView
@@ -81,7 +65,6 @@ struct PresetTabView: View {
                 .navigationDestination(isPresented: $navigateToAddPreset) {
                     AddPresetView(
                         selectedPreset: $selectedPreset,
-
                         selectedTab: $selectedTab
                     )
                 }
@@ -90,7 +73,6 @@ struct PresetTabView: View {
                 if let preset = selectedPreset {
                     presetDetailSheet(preset: preset)
                 }
-                
             }
             .sheet(isPresented: $navigateToShare) {
                 if let selectedPreset = selectedPreset {
@@ -103,47 +85,6 @@ struct PresetTabView: View {
             }
         }
     }
-    
-//    private var quickStartSection: some View {
-//        Group {
-//            HStack {
-//                Text("Quick start")
-//                    .font(.system(.title2, weight: .bold))
-//                    .foregroundColor(.white)
-//                Spacer()
-//                Image(systemName: quickStartExpanded ? "chevron.down" : "chevron.up")
-//                    .foregroundColor(.white)
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity, alignment: .leading)
-//            .background(Color.gray.opacity(0.2))
-//            .cornerRadius(10)
-//            .padding(.horizontal)
-//            .onTapGesture {
-//                withAnimation {
-//                    quickStartExpanded.toggle()
-//                }
-//            }
-//            
-//            if quickStartExpanded {
-//                VStack(alignment: .leading, spacing: 15) {
-//                    setsInput
-//                    workDurationInput
-//                    if sets > 1 {
-//                        restDurationInput
-//                    }
-//                    quickStartPlayButton
-//                }
-//                .padding(.horizontal, 15)
-//                .padding(.vertical, 15)
-//                .frame(maxWidth: .infinity, alignment: .leading)
-//                .background(Color.gray.opacity(0.2))
-//                .cornerRadius(10)
-//                .padding(.horizontal)
-//                .transition(.opacity)
-//            }
-//        }
-//    }
     
     private var setsInput: some View {
         HStack {
@@ -255,6 +196,7 @@ struct PresetTabView: View {
             title: "Play",
             icon: "play.fill",
             type: .primary,
+            isFullWidth: true,
             action: {
                 quickStartPreset = presetManager.createQuickStartPreset(
                     sets: sets,
@@ -294,20 +236,23 @@ struct PresetTabView: View {
                 }
                 Spacer().frame(height: 3)
                 
-                HStack {
-                    AppButton(
-                        title: "Play",
-                        icon: "play.fill",
-                        type: .secondary,
-                        isFullWidth: false,
-                        action: {
-                            selectedPreset = preset
-                            navigateToTimer = true
-                        }
-                    )
-                    
-                    Spacer()
-                    
+                HStack(spacing: 20) {
+                    // Modify the Play button to be full width and allow tapping the entire row
+                    Button(action: {
+                        selectedPreset = preset
+                        navigateToTimer = true
+                    }) {
+                        AppButton(
+                            title: "Play",
+                            icon: "play.fill",
+                            type: .secondary,
+                            isFullWidth: true,
+                            action: {}
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .frame(minWidth: 0, maxWidth: .infinity)
+
                     AppButton(
                         title: "",
                         icon: "ellipsis",
@@ -317,7 +262,7 @@ struct PresetTabView: View {
                             selectedPreset = preset
                             showDetail = true
                         }
-                    )
+                    ).frame(width: 50)
                 }
                 .frame(maxWidth: .infinity)
             }

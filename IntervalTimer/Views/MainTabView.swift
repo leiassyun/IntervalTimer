@@ -2,33 +2,17 @@ import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject private var presetManager: PresetManager
-    @Environment(\.colorScheme) var colorScheme
     @State private var selectedTab = 0
     @State private var selectedPreset: Preset? = nil
-    
-    
     
     var body: some View {
         NavigationView {
             ZStack {
-                if selectedTab != 2 {
-                    TabView(selection: $selectedTab) {
-                        PresetTabView(selectedTab: $selectedTab)
-                            .tabItem {
-                                Text("Preset")
-                            }
-                            .tag(0)
-                        
-                        SettingsView(selectedTab: $selectedTab)
-                            .tabItem {
-                                Text("Menu")   
-                            }
-                            .tag(1)
-            
-                    }
-                    .accentColor(AppTheme.Colors.primary(for: colorScheme))
+                if selectedTab != 1 {
+                    PresetTabView(selectedTab: $selectedTab)
                 }
-                if selectedTab == 2 {
+                
+                if selectedTab == 1 {
                     AddPresetView(
                         selectedPreset: $selectedPreset,
                         selectedTab: $selectedTab
@@ -37,10 +21,6 @@ struct MainTabView: View {
                     .zIndex(1)
                 }
             }
-            
-
-
-            
         }
     }
 }
@@ -48,7 +28,6 @@ struct MainTabView: View {
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
         MainTabView()
-            .environmentObject(AppearanceManager())
             .environmentObject(PresetManager())
     }
 }

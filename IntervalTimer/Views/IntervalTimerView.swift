@@ -1,6 +1,59 @@
 import SwiftUI
 import AVFoundation
 
+private struct HoldToExitButton: View {
+    let onComplete: () -> Void
+    @State private var isHolding = false
+    @State private var holdProgress: Double = 0
+    private let holdDuration: Double = 1
+    private let timer = Timer.publish(every: 0.01, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        AppButton(
+            title: "Hold to exit",
+            type: .secondary,
+            isFullWidth: false
+        ) {
+            // Button tap action not used
+        }
+        .overlay(
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    if isHolding {
+                        RoundedRectangle(cornerRadius: 8)  // Match the button's corner radius
+                            .fill(AppTheme.Colors.primary.opacity(0.3))
+                            .frame(width: geometry.size.width * holdProgress)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))  // Clip the fill to respect corner radius
+                    }
+                }
+                .animation(.linear(duration: 0.1), value: holdProgress)  // Smooth animation
+            }
+        )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !isHolding {
+                        isHolding = true
+                    }
+                }
+                .onEnded { _ in
+                    isHolding = false
+                    holdProgress = 0
+                }
+        )
+        .onReceive(timer) { _ in
+            if isHolding {
+                holdProgress = min(holdProgress + 0.01 / holdDuration, 1.0)
+                if holdProgress >= 1.0 {
+                    isHolding = false
+                    holdProgress = 0
+                    onComplete()
+                }
+            }
+        }
+    }
+}
+
 struct IntervalTimerView: View {
     let preset: Preset?
     @StateObject private var timerManager = TimerManager()
@@ -27,16 +80,13 @@ struct IntervalTimerView: View {
                 
                 Spacer()
                 
-                AppButton(
-                    title: "Hold to exit",
-                    type: .secondary,
-                    isFullWidth: false
-                ) {
+                HoldToExitButton {
                     Task { @MainActor in
                         await timerManager.stopTimer()
                         dismiss()
                     }
                 }
+                .frame(width: 180)
                 
                 Spacer()
                 
@@ -109,8 +159,8 @@ struct IntervalTimerView: View {
                 if timerManager.isWorkoutComplete {
                     AppButton(
                         title: "Complete",
-                        type: .secondary,
-                        isFullWidth: false
+                        type: .primary,
+                        isFullWidth: true
                     ) {
                         dismiss()
                     }
@@ -119,7 +169,7 @@ struct IntervalTimerView: View {
                     VStack(spacing: 16) {
                         AppButton(
                             title: "Resume",
-                            type: .secondary,
+                            type: .primary,
                             isFullWidth: true
                         ) {
                             Task { @MainActor in
@@ -180,7 +230,6 @@ struct IntervalTimerView: View {
                     if let firstWorkout = preset.workouts.first {
                         timerManager.setRemainingTime(Double(firstWorkout.duration))
                         speakWorkoutName(firstWorkout.name, duration: firstWorkout.duration)
-                        
                     }
                     await timerManager.startTimer()
                 }
@@ -220,62 +269,61 @@ struct IntervalTimerView: View {
             return
         }
         
-        // Configure the audio session
         do {
+            // Configure audio session
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try AVAudioSession.sharedInstance().setActive(true)
+            
+            // Determine language and get voice
+            let language = name.range(of: "\\p{Hangul}", options: .regularExpression) != nil ? "ko-KR" : "en-US"
+            guard let voice = AVSpeechSynthesisVoice(language: language) else {
+                print("Voice not available for language: \(language)")
+                return
+            }
+            
+            // Stop any existing speech
+            if speechSynthesizer.isSpeaking {
+                speechSynthesizer.stopSpeaking(at: .immediate)
+            }
+            
+            // Configure base utterance
+            let nameUtterance = AVSpeechUtterance(string: name)
+            nameUtterance.voice = voice
+            nameUtterance.rate = 0.5
+            nameUtterance.preUtteranceDelay = 0.1
+            
+            var durationText = ""
+            if let duration = duration {
+                let minutes = duration / 60
+                let seconds = duration % 60
+                if minutes > 0 {
+                    durationText += "\(minutes) minute" + (minutes > 1 ? "s" : "")
+                }
+                if seconds > 0 {
+                    if !durationText.isEmpty {
+                        durationText += " and "
+                    }
+                    durationText += "\(seconds) second" + (seconds > 1 ? "s" : "")
+                }
+            }
+            
+            if !durationText.isEmpty {
+                let pauseUtterance = AVSpeechUtterance(string: " ")
+                pauseUtterance.voice = voice
+                pauseUtterance.rate = 0.1
+                
+                let durationUtterance = AVSpeechUtterance(string: durationText)
+                durationUtterance.voice = voice
+                durationUtterance.rate = 0.5
+                
+                speechSynthesizer.speak(nameUtterance)
+                speechSynthesizer.speak(pauseUtterance)
+                speechSynthesizer.speak(durationUtterance)
+            } else {
+                speechSynthesizer.speak(nameUtterance)
+            }
         } catch {
             print("Failed to configure audio session: \(error.localizedDescription)")
-            return
-        }
-        
-        // Determine language for TTS
-        let language: String
-        if name.range(of: "\\p{Hangul}", options: .regularExpression) != nil {
-            language = "ko-KR"
-        } else {
-            language = "en-US"
-        }
-        
-        // Stop any existing speech
-        if speechSynthesizer.isSpeaking {
-            speechSynthesizer.stopSpeaking(at: .immediate)
-        }
-        
-        // Create and configure utterances
-        let nameUtterance = AVSpeechUtterance(string: name)
-        nameUtterance.voice = AVSpeechSynthesisVoice(language: language)
-        nameUtterance.rate = 0.5
-        
-        var durationText = ""
-        if let duration = duration {
-            let minutes = duration / 60
-            let seconds = duration % 60
-            if minutes > 0 {
-                durationText += "\(minutes) minute" + (minutes > 1 ? "s" : "")
-            }
-            if seconds > 0 {
-                if !durationText.isEmpty {
-                    durationText += " and "
-                }
-                durationText += "\(seconds) second" + (seconds > 1 ? "s" : "")
-            }
-        }
-        
-        if !durationText.isEmpty {
-            let pauseUtterance = AVSpeechUtterance(string: " ")
-            pauseUtterance.rate = 0.1 // Short pause
-            let durationUtterance = AVSpeechUtterance(string: durationText)
-            durationUtterance.voice = AVSpeechSynthesisVoice(language: language)
-            durationUtterance.rate = 0.5
-            
-            // Speak name, pause, and duration
-            speechSynthesizer.speak(nameUtterance)
-            speechSynthesizer.speak(pauseUtterance)
-            speechSynthesizer.speak(durationUtterance)
-        } else {
-            // Speak only the name
-            speechSynthesizer.speak(nameUtterance)
         }
     }
 }
