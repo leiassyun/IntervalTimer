@@ -218,6 +218,7 @@ struct AddPresetView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     private func calculateTotalDuration() -> String {
