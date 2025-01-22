@@ -39,7 +39,7 @@ struct AddPresetView: View {
     private var hasDefaultState: Bool {
         return workouts.count == 1 &&
         workouts[0].name == "Starts in..." &&
-        workouts[0].duration == 60 &&
+        workouts[0].duration == 5 &&
         presetName.isEmpty
     }
     
