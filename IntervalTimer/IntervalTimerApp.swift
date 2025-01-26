@@ -23,9 +23,10 @@ struct IntervalTimerApp: App {
                     appearanceManager.isDarkMode ? Color.black : Color.white
                 )
                 .edgesIgnoringSafeArea(.all)
-                .onChange(of: appearanceManager.isDarkMode) { _ in
+                .onChange(of: appearanceManager.isDarkMode) { oldValue, newValue in
                     configureTabBarAppearance()
-                    if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController {
                         tabBarController.tabBar.standardAppearance = UITabBar.appearance().standardAppearance
                         if #available(iOS 15.0, *) {
                             tabBarController.tabBar.scrollEdgeAppearance = UITabBar.appearance().scrollEdgeAppearance
@@ -65,3 +66,6 @@ struct IntervalTimerApp: App {
     }
     
 }
+
+
+

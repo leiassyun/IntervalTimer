@@ -13,20 +13,18 @@ private struct HoldToExitButton: View {
             title: "Hold to exit",
             type: .secondary,
             isFullWidth: false
-        ) {
-            // Button tap action not used
-        }
+        ) { }
         .overlay(
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     if isHolding {
-                        RoundedRectangle(cornerRadius: 8)  // Match the button's corner radius
+                        RoundedRectangle(cornerRadius: 8)
                             .fill(AppTheme.Colors.primary.opacity(0.3))
                             .frame(width: geometry.size.width * holdProgress)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))  // Clip the fill to respect corner radius
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                 }
-                .animation(.linear(duration: 0.1), value: holdProgress)  // Smooth animation
+                .animation(.linear(duration: 0.1), value: holdProgress)
             }
         )
         .simultaneousGesture(
@@ -42,13 +40,12 @@ private struct HoldToExitButton: View {
                 }
         )
         .onReceive(timer) { _ in
-            if isHolding {
-                holdProgress = min(holdProgress + 0.01 / holdDuration, 1.0)
-                if holdProgress >= 1.0 {
-                    isHolding = false
-                    holdProgress = 0
-                    onComplete()
-                }
+            guard isHolding else { return }
+            holdProgress = min(holdProgress + 0.01 / holdDuration, 1.0)
+            if holdProgress >= 1.0 {
+                isHolding = false
+                holdProgress = 0
+                onComplete()
             }
         }
     }
@@ -61,11 +58,11 @@ struct IntervalTimerView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var showControlButtons = false
     @State private var lastPlayedNumber: Int = 0
-    @State private var speechSynthesizer = AVSpeechSynthesizer()
+    @State private var speechSynthesizer: AVSpeechSynthesizer?
+    @State private var audioSession: AVAudioSession?
     
     var body: some View {
         VStack {
-            // Top Control Bar
             HStack {
                 AppButton(
                     title: "",
@@ -73,18 +70,14 @@ struct IntervalTimerView: View {
                     type: .secondary,
                     isFullWidth: false
                 ) {
-                    Task { @MainActor in
-                        await timerManager.moveToPreviousWorkout()
-                    }
+                    timerManager.moveToPreviousWorkout()
                 }
                 
                 Spacer()
                 
                 HoldToExitButton {
-                    Task { @MainActor in
-                        await timerManager.stopTimer()
-                        dismiss()
-                    }
+                    timerManager.stopTimer()
+                    dismiss()
                 }
                 .frame(width: 180)
                 
@@ -96,38 +89,31 @@ struct IntervalTimerView: View {
                     type: .secondary,
                     isFullWidth: false
                 ) {
-                    Task { @MainActor in
-                        await timerManager.moveToNextWorkout()
-                    }
+                    timerManager.moveToNextWorkout()
                 }
             }
             .padding()
             
             Spacer()
             
-            // Current Workout Name
             if let preset = preset, !preset.workouts.isEmpty {
                 Text(preset.workouts[timerManager.currentWorkoutIndex].name)
                     .font(.system(.title, design: .rounded, weight: .bold))
                     .foregroundColor(appearanceManager.fontColor)
                     .padding()
-                    .onChange(of: timerManager.currentWorkoutIndex) { newValue in
-                        Task { @MainActor in
-                            let currentWorkoutName = preset.workouts[newValue].name
-                            let currentWorkoutTime = preset.workouts[newValue].duration
-                            speakWorkoutName(currentWorkoutName, duration: currentWorkoutTime)
-                        }
+                    .onChange(of: timerManager.currentWorkoutIndex) { oldValue, newValue in
+                        let currentWorkoutName = preset.workouts[newValue].name
+                        let currentWorkoutTime = preset.workouts[newValue].duration
+                        speakWorkoutName(currentWorkoutName, duration: currentWorkoutTime)
                     }
             }
             
-            // Timer Display
             Text(formatTime(timerManager.remainingTime))
                 .font(.system(size: 100, weight: .bold, design: .rounded))
                 .dynamicTypeSize(...DynamicTypeSize.accessibility5)
                 .foregroundColor(appearanceManager.fontColor)
                 .padding()
             
-            // Progress Info
             if let preset = preset {
                 HStack {
                     Spacer()
@@ -154,7 +140,6 @@ struct IntervalTimerView: View {
             
             Spacer()
             
-            // Control Buttons
             VStack {
                 if timerManager.isWorkoutComplete {
                     AppButton(
@@ -172,10 +157,8 @@ struct IntervalTimerView: View {
                             type: .primary,
                             isFullWidth: true
                         ) {
-                            Task { @MainActor in
-                                await timerManager.startTimer()
-                                showControlButtons = false
-                            }
+                            timerManager.startTimer()
+                            showControlButtons = false
                         }
                         
                         AppButton(
@@ -183,11 +166,9 @@ struct IntervalTimerView: View {
                             type: .tertiary,
                             isFullWidth: true
                         ) {
-                            Task { @MainActor in
-                                await timerManager.resetToStart()
-                                await timerManager.startTimer()
-                                showControlButtons = false
-                            }
+                            timerManager.resetToStart()
+                            timerManager.startTimer()
+                            showControlButtons = false
                         }
                     }
                     .padding(.horizontal)
@@ -205,15 +186,16 @@ struct IntervalTimerView: View {
         .onTapGesture {
             showControlButtons.toggle()
             if showControlButtons {
-                Task { @MainActor in
-                    await timerManager.pauseTimer()
-                }
+                timerManager.pauseTimer()
             }
         }
         .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
+            setupAudioSession()
+            setupSpeechSynthesizer()
+            
             if let preset = preset {
                 timerManager.workouts = preset.workouts
                 timerManager.onWorkoutComplete = {
@@ -226,22 +208,20 @@ struct IntervalTimerView: View {
                         SoundManager.shared.playSound(named: String(seconds))
                     }
                 }
-                Task { @MainActor in
-                    if let firstWorkout = preset.workouts.first {
-                        timerManager.setRemainingTime(Double(firstWorkout.duration))
-                        speakWorkoutName(firstWorkout.name, duration: firstWorkout.duration)
-                    }
-                    await timerManager.startTimer()
+                
+                if let firstWorkout = preset.workouts.first {
+                    timerManager.setRemainingTime(Double(firstWorkout.duration))
+                    speakWorkoutName(firstWorkout.name, duration: firstWorkout.duration)
                 }
+                timerManager.startTimer()
                 setTabBarVisibility(hidden: true)
             }
         }
         .onDisappear {
-            Task { @MainActor in
-                await timerManager.stopTimer()
-                SoundManager.shared.stopSound()
-                setTabBarVisibility(hidden: false)
-            }
+            timerManager.stopTimer()
+            SoundManager.shared.stopSound()
+            setTabBarVisibility(hidden: false)
+            teardownAudioSession()
         }
     }
     
@@ -258,72 +238,100 @@ struct IntervalTimerView: View {
     }
     
     private func setTabBarVisibility(hidden: Bool) {
-        if let tabBarController = UIApplication.shared.windows.first?.rootViewController as? UITabBarController {
-            tabBarController.tabBar.isHidden = hidden
+        DispatchQueue.main.async {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let tabBarController = windowScene.windows.first?.rootViewController as? UITabBarController {
+                tabBarController.tabBar.isHidden = hidden
+            }
         }
     }
     
+    private func setupAudioSession() {
+        do {
+            audioSession = AVAudioSession.sharedInstance()
+            try audioSession?.setCategory(.playback, mode: .default, options: [.mixWithOthers, .duckOthers])
+            try audioSession?.setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
+        }
+    }
+    
+    private func teardownAudioSession() {
+        do {
+            try audioSession?.setActive(false)
+        } catch {
+            print("Failed to deactivate audio session: \(error.localizedDescription)")
+        }
+    }
+    
+    private func setupSpeechSynthesizer() {
+        speechSynthesizer = AVSpeechSynthesizer()
+    }
+    
     private func speakWorkoutName(_ name: String, duration: Int? = nil) {
-        guard !name.isEmpty else {
-            print("Workout name is empty. Skipping speech.")
+        guard !name.isEmpty,
+              let synthesizer = speechSynthesizer,
+              let audioSession = audioSession else {
             return
         }
         
         do {
-            // Configure audio session
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+            try audioSession.setActive(true)
             
-            // Determine language and get voice
             let language = name.range(of: "\\p{Hangul}", options: .regularExpression) != nil ? "ko-KR" : "en-US"
             guard let voice = AVSpeechSynthesisVoice(language: language) else {
-                print("Voice not available for language: \(language)")
                 return
             }
             
-            // Stop any existing speech
-            if speechSynthesizer.isSpeaking {
-                speechSynthesizer.stopSpeaking(at: .immediate)
+            if synthesizer.isSpeaking {
+                synthesizer.stopSpeaking(at: .immediate)
             }
             
-            // Configure base utterance
             let nameUtterance = AVSpeechUtterance(string: name)
             nameUtterance.voice = voice
             nameUtterance.rate = 0.5
             nameUtterance.preUtteranceDelay = 0.1
             
-            var durationText = ""
             if let duration = duration {
-                let minutes = duration / 60
-                let seconds = duration % 60
-                if minutes > 0 {
-                    durationText += "\(minutes) minute" + (minutes > 1 ? "s" : "")
+                let durationText = formatDurationForSpeech(duration)
+                if !durationText.isEmpty {
+                    let pauseUtterance = AVSpeechUtterance(string: " ")
+                    pauseUtterance.voice = voice
+                    pauseUtterance.rate = 0.1
+                    
+                    let durationUtterance = AVSpeechUtterance(string: durationText)
+                    durationUtterance.voice = voice
+                    durationUtterance.rate = 0.5
+                    
+                    synthesizer.speak(nameUtterance)
+                    synthesizer.speak(pauseUtterance)
+                    synthesizer.speak(durationUtterance)
+                } else {
+                    synthesizer.speak(nameUtterance)
                 }
-                if seconds > 0 {
-                    if !durationText.isEmpty {
-                        durationText += " and "
-                    }
-                    durationText += "\(seconds) second" + (seconds > 1 ? "s" : "")
-                }
-            }
-            
-            if !durationText.isEmpty {
-                let pauseUtterance = AVSpeechUtterance(string: " ")
-                pauseUtterance.voice = voice
-                pauseUtterance.rate = 0.1
-                
-                let durationUtterance = AVSpeechUtterance(string: durationText)
-                durationUtterance.voice = voice
-                durationUtterance.rate = 0.5
-                
-                speechSynthesizer.speak(nameUtterance)
-                speechSynthesizer.speak(pauseUtterance)
-                speechSynthesizer.speak(durationUtterance)
             } else {
-                speechSynthesizer.speak(nameUtterance)
+                synthesizer.speak(nameUtterance)
             }
         } catch {
-            print("Failed to configure audio session: \(error.localizedDescription)")
+            print("Failed to activate audio session for speech: \(error.localizedDescription)")
         }
+    }
+    
+    private func formatDurationForSpeech(_ duration: Int) -> String {
+        let minutes = duration / 60
+        let seconds = duration % 60
+        var text = ""
+        
+        if minutes > 0 {
+            text += "\(minutes) minute" + (minutes > 1 ? "s" : "")
+        }
+        if seconds > 0 {
+            if !text.isEmpty {
+                text += " and "
+            }
+            text += "\(seconds) second" + (seconds > 1 ? "s" : "")
+        }
+        
+        return text
     }
 }

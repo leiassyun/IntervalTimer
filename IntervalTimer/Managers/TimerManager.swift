@@ -9,34 +9,30 @@ class TimerManager: ObservableObject {
     @Published private(set) var currentWorkoutIndex = 0
     @Published private(set) var isWorkoutComplete = false
     
-    private var timerTask: Task<Void, Never>?
+    private var timer: Timer?
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
     
     var workouts: [Workout] = []
     var onWorkoutComplete: (() -> Void)?
     var onTimerTick: ((TimeInterval) -> Void)?
 
-    func startTimer() async {
+    func startTimer() {
         guard !isRunning else { return }
         isRunning = true
         startBackgroundTask()
-        
-        // Disable idle timer when timer starts
         UIApplication.shared.isIdleTimerDisabled = true
         
-        timerTask = Task {
-            while !Task.isCancelled && isRunning {
-                if remainingTime > 0 {
-                    remainingTime -= 1
-                    onTimerTick?(remainingTime)
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                if self.remainingTime > 0 {
+                    self.remainingTime -= 1
+                    self.onTimerTick?(self.remainingTime)
                     
-                    // Check if we need to move to next workout
-                    if remainingTime == 0 {
-                        await moveToNextWorkout()
+                    if self.remainingTime == 0 {
+                        self.moveToNextWorkout()
                     }
                 }
-                
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
             }
         }
     }
@@ -45,29 +41,25 @@ class TimerManager: ObservableObject {
         remainingTime = duration
     }
     
-    func pauseTimer() async {
+    func pauseTimer() {
         isRunning = false
-        timerTask?.cancel()
-        timerTask = nil
+        timer?.invalidate()
+        timer = nil
         endBackgroundTask()
-        
-        // Re-enable idle timer when timer is paused
         UIApplication.shared.isIdleTimerDisabled = false
     }
     
-    func stopTimer() async {
-        await pauseTimer()
+    func stopTimer() {
+        pauseTimer()
         remainingTime = 0
         currentWorkoutIndex = 0
         isWorkoutComplete = false
-        
-        // Ensure idle timer is re-enabled when timer stops completely
         UIApplication.shared.isIdleTimerDisabled = false
     }
     
-    func moveToNextWorkout() async {
+    func moveToNextWorkout() {
         guard currentWorkoutIndex < workouts.count - 1 else {
-            await pauseTimer()
+            pauseTimer()
             isWorkoutComplete = true
             onWorkoutComplete?()
             return
@@ -77,17 +69,25 @@ class TimerManager: ObservableObject {
         remainingTime = Double(workouts[currentWorkoutIndex].duration)
     }
     
-    func moveToPreviousWorkout() async {
+    func moveToPreviousWorkout() {
         guard currentWorkoutIndex > 0 else { return }
         currentWorkoutIndex -= 1
         remainingTime = Double(workouts[currentWorkoutIndex].duration)
     }
     
+    func resetToStart() {
+        stopTimer()
+        currentWorkoutIndex = 0
+        isWorkoutComplete = false
+        if let firstWorkout = workouts.first {
+            remainingTime = Double(firstWorkout.duration)
+        }
+        UIApplication.shared.isIdleTimerDisabled = false
+    }
+    
     private func startBackgroundTask() {
         backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
-            Task { @MainActor [weak self] in
-                await self?.stopTimer()
-            }
+            self?.stopTimer()
         }
     }
     
@@ -97,23 +97,14 @@ class TimerManager: ObservableObject {
             backgroundTask = .invalid
         }
     }
-
-    func resetToStart() async {
-        await stopTimer()
-        currentWorkoutIndex = 0
-        isWorkoutComplete = false
-        if let firstWorkout = workouts.first {
-            remainingTime = Double(firstWorkout.duration)
-        }
-        
-        // Ensure idle timer is re-enabled
-        UIApplication.shared.isIdleTimerDisabled = false
-    }
     
     deinit {
-        Task { @MainActor in
-            await stopTimer()
+        @MainActor func cleanup() {
+            stopTimer()
             UIApplication.shared.isIdleTimerDisabled = false
+        }
+        Task { @MainActor in
+            cleanup()
         }
     }
 }
