@@ -87,8 +87,9 @@ class TimerManager: ObservableObject {
     
     private func startBackgroundTask() {
         backgroundTask = UIApplication.shared.beginBackgroundTask { [weak self] in
-            self?.stopTimer()
-        }
+              self?.pauseTimer()
+              self?.endBackgroundTask()
+          }
     }
     
     private func endBackgroundTask() {

@@ -102,6 +102,8 @@ struct IntervalTimerView: View {
                     .foregroundColor(appearanceManager.fontColor)
                     .padding()
                     .onChange(of: timerManager.currentWorkoutIndex) { oldValue, newValue in
+                        guard newValue < preset.workouts.count else { return }
+
                         let currentWorkoutName = preset.workouts[newValue].name
                         let currentWorkoutTime = preset.workouts[newValue].duration
                         speakWorkoutName(currentWorkoutName, duration: currentWorkoutTime)
@@ -189,7 +191,7 @@ struct IntervalTimerView: View {
                 timerManager.pauseTimer()
             }
         }
-        .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
+        .background(appearanceManager.backgroundColor.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .tabBar)
         .onAppear {

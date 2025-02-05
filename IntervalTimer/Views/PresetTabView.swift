@@ -22,7 +22,7 @@ struct PresetTabView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all)
+                appearanceManager.backgroundColor.ignoresSafeArea()
                 if showDetail || navigateToShare {
                     Color(UIColor(red: 91/255, green: 76/255, blue: 113/255, alpha: 0.9))
                         .ignoresSafeArea()

@@ -34,26 +34,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, ObservableObject  {
         }
     }
     
-    // Helper function for decoding the preset
     private func decodePreset(from doubleEncodedPreset: String) throws -> Preset {
-        // Step 1: First percent-decoding
         guard let firstDecoded = doubleEncodedPreset.removingPercentEncoding else {
             throw NSError(domain: "URLDecoding", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to perform first percent-decoding."])
         }
         print("First Decoded String: \(firstDecoded)")
         
-        // Step 2: Second percent-decoding
         guard let secondDecoded = firstDecoded.removingPercentEncoding else {
             throw NSError(domain: "URLDecoding", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to perform second percent-decoding."])
         }
         print("Second Decoded String: \(secondDecoded)")
         
-        // Step 3: Convert to Data
         guard let data = secondDecoded.data(using: .utf8) else {
             throw NSError(domain: "URLDecoding", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to convert string to data."])
         }
-        
-        // Step 4: Decode into Preset
+    
         do {
             return try JSONDecoder().decode(Preset.self, from: data)
         } catch {

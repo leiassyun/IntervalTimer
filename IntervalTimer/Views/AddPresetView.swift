@@ -10,7 +10,7 @@ struct AddPresetView: View {
     @State private var selectedWorkoutIndex: Int?
     @State private var showingDiscardAlert = false
     @State private var isEditing = false
-    
+
     @State private var initialPresetName: String
     @State private var initialWorkouts: [Workout]
     @State private var presetName = ""
@@ -38,9 +38,9 @@ struct AddPresetView: View {
     
     private var hasDefaultState: Bool {
         return workouts.count == 1 &&
-        workouts[0].name == "Starts in..." &&
-        workouts[0].duration == 5 &&
-        presetName.isEmpty
+            workouts[0].name == "Starts in..." &&
+            workouts[0].duration == 5 &&
+            presetName.isEmpty
     }
     
     private var hasUnsavedChanges: Bool {
@@ -131,12 +131,11 @@ struct AddPresetView: View {
             VStack(spacing: 0) {
                 PresetHeaderView(totalDuration: calculateTotalDuration())
                     .padding(.bottom, 20)
-                    .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
+                    .background(appearanceManager.backgroundColor.ignoresSafeArea())
                 
                 VStack(spacing: 0) {
                     List {
                         workoutListContent
-                        
                         AddWorkoutButton(
                             workouts: $workouts,
                             focusedWorkoutIndex: $focusedWorkoutIndex
@@ -160,7 +159,7 @@ struct AddPresetView: View {
                     selectedTab = 0
                 }
             }
-            .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
+            .background(appearanceManager.backgroundColor.ignoresSafeArea())
             .onAppear {
                 if workouts.isEmpty {
                     workouts.append(presetManager.createWorkout(name: "Starts in...", duration: 5))
@@ -254,7 +253,7 @@ struct AddPresetView: View {
 extension Workout: Equatable {
     static func == (lhs: Workout, rhs: Workout) -> Bool {
         return lhs.id == rhs.id &&
-        lhs.name == rhs.name &&
-        lhs.duration == rhs.duration
+            lhs.name == rhs.name &&
+            lhs.duration == rhs.duration
     }
 }

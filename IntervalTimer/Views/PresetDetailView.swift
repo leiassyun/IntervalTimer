@@ -120,7 +120,7 @@ struct PresetDetailView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 20)
             }
-            .background(appearanceManager.backgroundColor.edgesIgnoringSafeArea(.all))
+            .background(appearanceManager.backgroundColor.ignoresSafeArea())
             .alert(isPresented: $isShowingDeleteAlert) {
                 Alert(
                     title: Text("Are you sure you want to delete this preset?"),
