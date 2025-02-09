@@ -23,7 +23,6 @@ struct MainTabView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
-
     }
 }
 

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AppTheme {
+struct ButtonManager {
     // MARK: - Size Configuration
     struct Sizes {
         struct Icon {
@@ -49,9 +49,9 @@ struct AppTheme {
             func body(content: Content) -> some View {
                 content
                     .foregroundColor(Colors.primaryText)
-                    .padding(.horizontal, AppTheme.Sizes.Button.Padding.horizontalStandard)
-                    .padding(.vertical, AppTheme.Sizes.Button.Padding.verticalStandard)
-                    .frame(height: AppTheme.Sizes.Button.standard)
+                    .padding(.horizontal, ButtonManager.Sizes.Button.Padding.horizontalStandard)
+                    .padding(.vertical, ButtonManager.Sizes.Button.Padding.verticalStandard)
+                    .frame(height: ButtonManager.Sizes.Button.standard)
                     .frame(maxWidth: isFullWidth ? .infinity : nil)
                     .background(Colors.primary)
                     .cornerRadius(8)
@@ -65,9 +65,9 @@ struct AppTheme {
             func body(content: Content) -> some View {
                 content
                     .foregroundColor(Colors.primary)
-                    .padding(.horizontal, AppTheme.Sizes.Button.Padding.horizontalStandard)
-                    .padding(.vertical, AppTheme.Sizes.Button.Padding.verticalStandard)
-                    .frame(height: AppTheme.Sizes.Button.standard)
+                    .padding(.horizontal, ButtonManager.Sizes.Button.Padding.horizontalStandard)
+                    .padding(.vertical, ButtonManager.Sizes.Button.Padding.verticalStandard)
+                    .frame(height: ButtonManager.Sizes.Button.standard)
                     .frame(maxWidth: isFullWidth ? .infinity : nil)
                     .background(Colors.secondaryBackground)
                     .cornerRadius(8)
@@ -81,9 +81,9 @@ struct AppTheme {
             func body(content: Content) -> some View {
                 content
                     .foregroundColor(.white)
-                    .padding(.horizontal, AppTheme.Sizes.Button.Padding.horizontalStandard)
-                    .padding(.vertical, AppTheme.Sizes.Button.Padding.verticalStandard)
-                    .frame(height: AppTheme.Sizes.Button.standard)
+                    .padding(.horizontal, ButtonManager.Sizes.Button.Padding.horizontalStandard)
+                    .padding(.vertical, ButtonManager.Sizes.Button.Padding.verticalStandard)
+                    .frame(height: ButtonManager.Sizes.Button.standard)
                     .frame(maxWidth: isFullWidth ? .infinity : nil)
                     .background(Colors.tertiaryBackground)
                     .cornerRadius(8)
@@ -103,19 +103,19 @@ struct AppTheme {
 // MARK: - View Extensions for Button Styles
 extension View {
     func primaryButtonStyle(isFullWidth: Bool = true) -> some View {
-        modifier(AppTheme.ButtonStyle.Primary(isFullWidth: isFullWidth))
+        modifier(ButtonManager.ButtonStyle.Primary(isFullWidth: isFullWidth))
     }
 
     func secondaryButtonStyle(isFullWidth: Bool = true) -> some View {
-        modifier(AppTheme.ButtonStyle.Secondary(isFullWidth: isFullWidth))
+        modifier(ButtonManager.ButtonStyle.Secondary(isFullWidth: isFullWidth))
     }
 
     func tertiaryButtonStyle(isFullWidth: Bool = true) -> some View {
-        modifier(AppTheme.ButtonStyle.Tertiary(isFullWidth: isFullWidth))
+        modifier(ButtonManager.ButtonStyle.Tertiary(isFullWidth: isFullWidth))
     }
     
     func textOnlyButtonStyle() -> some View {
-        modifier(AppTheme.ButtonStyle.TextOnly())
+        modifier(ButtonManager.ButtonStyle.TextOnly())
     }
 }
 
@@ -156,16 +156,16 @@ struct AppButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: AppTheme.Sizes.Button.Padding.spacing) {
+            HStack(spacing: ButtonManager.Sizes.Button.Padding.spacing) {
                 if let icon = icon {
                     Image(systemName: icon)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: AppTheme.Sizes.Icon.standard, height: AppTheme.Sizes.Icon.standard)
+                        .frame(width: ButtonManager.Sizes.Icon.standard, height: ButtonManager.Sizes.Icon.standard)
                 }
                 if !title.isEmpty {
                     Text(title)
-                        .font(.system(size: AppTheme.Sizes.Font.standard, weight: .semibold))
+                        .font(.system(size: ButtonManager.Sizes.Font.standard, weight: .semibold))
                 }
             }
         }
@@ -185,16 +185,16 @@ private extension View {
         switch type {
         case .primary:
             self.primaryButtonStyle(isFullWidth: isFullWidth)
-                .foregroundColor(foregroundColor ?? AppTheme.Colors.primaryText)
+                .foregroundColor(foregroundColor ?? ButtonManager.Colors.primaryText)
         case .secondary:
             self.secondaryButtonStyle(isFullWidth: isFullWidth)
-                .foregroundColor(foregroundColor ?? AppTheme.Colors.primary)
+                .foregroundColor(foregroundColor ?? ButtonManager.Colors.primary)
         case .tertiary:
             self.tertiaryButtonStyle(isFullWidth: isFullWidth)
                 .foregroundColor(foregroundColor ?? .white)
         case .textOnly:
             self.textOnlyButtonStyle()
-                .foregroundColor(foregroundColor ?? AppTheme.Colors.primary)
+                .foregroundColor(foregroundColor ?? ButtonManager.Colors.primary)
         }
     }
 }

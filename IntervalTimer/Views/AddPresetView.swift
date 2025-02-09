@@ -3,7 +3,7 @@ import SwiftUI
 struct AddPresetView: View {
     @EnvironmentObject var appearanceManager: AppearanceManager
     @EnvironmentObject var presetManager: PresetManager
-    @Environment(\.colorScheme) var colorScheme
+    
     @Binding var selectedTab: Int
     @State private var selectedPreset: Preset?
     @State private var showingTimePicker = false

@@ -3,7 +3,7 @@ import SwiftUI
 struct PresetTabView: View {
     @EnvironmentObject var presetManager: PresetManager
     @EnvironmentObject var appearanceManager: AppearanceManager
-    @Environment(\.colorScheme) var colorScheme
+    
     @Binding var selectedTab: Int
     @State private var showActionSheet = false
     @State private var selectedPreset: Preset?

@@ -19,7 +19,7 @@ private struct HoldToExitButton: View {
                 ZStack(alignment: .leading) {
                     if isHolding {
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(AppTheme.Colors.primary.opacity(0.3))
+                            .fill(ButtonManager.Colors.primary.opacity(0.3))
                             .frame(width: geometry.size.width * holdProgress)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
