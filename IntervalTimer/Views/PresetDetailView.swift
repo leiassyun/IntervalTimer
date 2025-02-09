@@ -13,7 +13,6 @@ struct PresetDetailView: View {
     var onPlay: () -> Void
     var onNavigateToTimer: () -> Void
     var onNavigateToAddPreset: () -> Void
-    var onNavigateToShare: () -> Void
     
     var body: some View {
         NavigationStack {
@@ -29,16 +28,6 @@ struct PresetDetailView: View {
                     }
                     
                     Spacer()
-                    
-                    AppButton(
-                        title: "Share",
-                        type: .secondary,
-                        isFullWidth: false
-                    ) {
-                        isShareSheetPresented = true
-                        dismiss()
-                        onNavigateToShare()
-                    }
                     
                     Menu {
                         Button(action: {

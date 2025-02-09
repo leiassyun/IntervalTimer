@@ -9,7 +9,6 @@ struct PresetTabView: View {
     @State private var selectedPreset: Preset?
     @State private var navigateToTimer = false
     @State private var navigateToAddPreset = false
-    @State private var navigateToShare = false
     @State private var showDetail = false
     @State private var isShowingDeleteAlert = false
     @State private var quickStartExpanded = false
@@ -17,13 +16,12 @@ struct PresetTabView: View {
     @State private var workoutDuration: TimeInterval = 60
     @State private var restDuration: TimeInterval = 30
     @State private var quickStartPreset: Preset?
-    @EnvironmentObject var appDelegate: AppDelegate
     
     var body: some View {
         NavigationStack {
             ZStack {
                 appearanceManager.backgroundColor.ignoresSafeArea()
-                if showDetail || navigateToShare {
+                if showDetail  {
                     Color(UIColor(red: 91/255, green: 76/255, blue: 113/255, alpha: 0.9))
                         .ignoresSafeArea()
                         .transition(.opacity)
@@ -72,15 +70,6 @@ struct PresetTabView: View {
             .sheet(isPresented: $showDetail) {
                 if let preset = selectedPreset {
                     presetDetailSheet(preset: preset)
-                }
-            }
-            .sheet(isPresented: $navigateToShare) {
-                if let selectedPreset = selectedPreset {
-                    shareSheet(preset: selectedPreset)
-                } else {
-                    Text("No preset selected")
-                        .font(.headline)
-                        .padding()
                 }
             }
         }
@@ -292,10 +281,6 @@ struct PresetTabView: View {
             onNavigateToAddPreset: {
                 showDetail = false
                 navigateToAddPreset = true
-            },
-            onNavigateToShare: {
-                showDetail = false
-                navigateToShare = true
             }
         )
         .presentationDetents([.medium, .large])
@@ -304,12 +289,4 @@ struct PresetTabView: View {
         .animation(.easeInOut(duration: 0.3), value: showDetail)
     }
     
-    private func shareSheet(preset: Preset) -> some View {
-        ShareView(preset: preset)
-            .environmentObject(presetManager)
-            .presentationDetents([.fraction(0.38)])
-            .presentationDragIndicator(.hidden)
-            .transition(.move(edge: .bottom))
-            .animation(.easeInOut(duration: 0.3), value: true)
-    }
 }

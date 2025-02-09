@@ -5,7 +5,6 @@ import UIKit
 struct IntervalTimerApp: App {
     @StateObject private var appearanceManager = AppearanceManager()
     @StateObject private var presetManager = PresetManager()
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
         configureTabBarAppearance()
