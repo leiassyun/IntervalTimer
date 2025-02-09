@@ -200,10 +200,24 @@ struct PresetTabView: View {
     }
     
     private var presetsScrollView: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(presetManager.presets) { preset in
-                    presetRow(preset)
+        Group{
+            if presetManager.presets.isEmpty{
+                VStack{
+                    Spacer()
+                    Text("Empty Preset")
+                        .font(.subheadline)
+                        .foregroundColor(appearanceManager.fontColor)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                    Spacer()
+                }
+            } else{
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(presetManager.presets) { preset in
+                            presetRow(preset)
+                        }
+                    }
                 }
             }
         }
