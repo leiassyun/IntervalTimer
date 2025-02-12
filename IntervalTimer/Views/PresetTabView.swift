@@ -9,7 +9,7 @@ struct PresetTabView: View {
     @State private var selectedPreset: Preset?
     @State private var navigateToTimer = false
     @State private var navigateToAddPreset = false
-    @State private var navigateToShare = false
+    
     @State private var showDetail = false
     @State private var isShowingDeleteAlert = false
     @State private var quickStartExpanded = false
@@ -298,10 +298,6 @@ struct PresetTabView: View {
             onNavigateToAddPreset: {
                 showDetail = false
                 navigateToAddPreset = true
-            },
-            onNavigateToShare: {
-                showDetail = false
-                navigateToShare = true
             }
         )
         .presentationDetents([.medium, .large])

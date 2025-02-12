@@ -13,7 +13,6 @@ struct PresetDetailView: View {
     var onPlay: () -> Void
     var onNavigateToTimer: () -> Void
     var onNavigateToAddPreset: () -> Void
-    var onNavigateToShare: () -> Void
     
     var body: some View {
         NavigationStack {
