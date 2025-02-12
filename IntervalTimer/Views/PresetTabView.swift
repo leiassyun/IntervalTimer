@@ -9,6 +9,7 @@ struct PresetTabView: View {
     @State private var selectedPreset: Preset?
     @State private var navigateToTimer = false
     @State private var navigateToAddPreset = false
+    @State private var navigateToShare = false
     @State private var showDetail = false
     @State private var isShowingDeleteAlert = false
     @State private var quickStartExpanded = false
@@ -16,6 +17,8 @@ struct PresetTabView: View {
     @State private var workoutDuration: TimeInterval = 60
     @State private var restDuration: TimeInterval = 30
     @State private var quickStartPreset: Preset?
+    @EnvironmentObject var appDelegate: AppDelegate
+
     
     var body: some View {
         NavigationStack {
@@ -28,7 +31,7 @@ struct PresetTabView: View {
                 }
                 
                 VStack {
-                    // Title Bar
+                   
                     HStack {
                         Text("Preset")
                             .font(.system(.title, weight: .bold))
@@ -66,6 +69,7 @@ struct PresetTabView: View {
                         selectedTab: $selectedTab
                     )
                 }
+            
             }
             .sheet(isPresented: $showDetail) {
                 if let preset = selectedPreset {
@@ -240,7 +244,6 @@ struct PresetTabView: View {
                 Spacer().frame(height: 3)
                 
                 HStack(spacing: 20) {
-                    // Modify the Play button to be full width and allow tapping the entire row
                     Button(action: {
                         selectedPreset = preset
                         navigateToTimer = true
@@ -295,6 +298,10 @@ struct PresetTabView: View {
             onNavigateToAddPreset: {
                 showDetail = false
                 navigateToAddPreset = true
+            },
+            onNavigateToShare: {
+                showDetail = false
+                navigateToShare = true
             }
         )
         .presentationDetents([.medium, .large])
@@ -302,5 +309,4 @@ struct PresetTabView: View {
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.3), value: showDetail)
     }
-    
 }

@@ -13,6 +13,7 @@ struct PresetDetailView: View {
     var onPlay: () -> Void
     var onNavigateToTimer: () -> Void
     var onNavigateToAddPreset: () -> Void
+    var onNavigateToShare: () -> Void
     
     var body: some View {
         NavigationStack {
@@ -28,6 +29,22 @@ struct PresetDetailView: View {
                     }
                     
                     Spacer()
+    
+                    if let shareURL = ShareManager.generateShareURL(for: preset) {
+                        ShareLink(item: shareURL,
+                                  subject: Text("Check out my workout preset!"),
+                                  message: Text("I've been using this great workout preset for my intervals. Try it out!")) {
+                            Text("Share")
+                                .foregroundColor(Color(UIColor(red: 200/255, green: 236/255, blue: 68/255, alpha: 1)))
+                                .font(.headline)
+                                .padding()
+
+                        }
+                    } else {
+                        Text("Unable to generate a shareable URL.")
+                            .foregroundColor(.red)
+                            .padding()
+                    }
                     
                     Menu {
                         Button(action: {

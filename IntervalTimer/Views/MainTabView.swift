@@ -23,6 +23,18 @@ struct MainTabView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+        .onOpenURL { url in
+                    ShareManager.handleIncomingURL(url) { result in
+                        switch result {
+                        case .success(let preset):
+                            DispatchQueue.main.async {
+                                presetManager.addPresetP(newPreset: preset)
+                            }
+                        case .failure(let error):
+                            print("MainTabView: Error decoding preset: \(error.localizedDescription)")
+                        }
+                    }
+                }
     }
 }
 
